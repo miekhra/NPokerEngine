@@ -5,7 +5,7 @@ using System.Text;
 
 namespace NPokerEngine.Engine
 {
-    public class MessageBuilder
+    public class MessageBuilder : IMessageBuilder
     {
         public const string GAME_START_MESSAGE = "game_start_message";
         public const string ROUND_START_MESSAGE = "round_start_message";
@@ -69,7 +69,7 @@ namespace NPokerEngine.Engine
                     {
                         "round_state",
                         DataEncoder.Instance.EncodeRoundState(state)}};
-            foreach (var item in DataEncoder.Instance.EncodeStreet((byte)state["street"]))
+            foreach (var item in DataEncoder.Instance.EncodeStreet(Convert.ToByte(state["street"])))
             {
                 message[item.Key] = item.Value;
             }

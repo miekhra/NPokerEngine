@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -9,18 +10,18 @@ namespace NPokerEngine.Engine
 {
     public class Deck
     {
-        private List<Card> _deck;
-        private readonly ReadOnlyCollection<int> _cheatCardIds;
+        internal List<Card> _deck;
+        internal readonly ReadOnlyCollection<int> _cheatCardIds;
         private int _popIndex = 0;
         private readonly bool _isCheat;
 
         public bool IsCheat => _isCheat;
         public int Size => (_deck.Count - _popIndex);
 
-        public Deck(IEnumerable<int> cardIds = null, bool _cheat = false, IEnumerable<int> cheatCardIds = null)
+        public Deck(IEnumerable<int> cardIds = null, bool cheat = false, IEnumerable<int> cheatCardIds = null)
         {
-            _isCheat = _cheat;
-            _cheatCardIds = cheatCardIds.ToList().AsReadOnly();
+            _isCheat = cheat;
+            _cheatCardIds = _isCheat ? cheatCardIds.ToList().AsReadOnly() : null;
             _deck = cardIds != null ? cardIds.Select(Card.FromId).ToList() : SetupDeck();
         }
 
@@ -28,6 +29,7 @@ namespace NPokerEngine.Engine
         {
             var ix = _deck.Count - 1 - _popIndex++;
             return _deck[ix];
+            //return _deck[_popIndex++];
         }
 
         public void Shuffle()
@@ -60,18 +62,18 @@ namespace NPokerEngine.Engine
         private List<Card> SetupDeck()
         {
             _popIndex = 0;
-            return IsCheat ? _cheatCardIds.Select(Card.FromId).ToList() : Enumerable.Range(1, 52).Select(Card.FromId).ToList();
+            return IsCheat ? _cheatCardIds.Reverse().Select(Card.FromId).ToList() : Enumerable.Range(1, 52).Select(Card.FromId).ToList();
         }
 
         // serialize format : [cheat_flg, cheat_card_ids, deck_card_ids]
         public string Serialize()
-            => $"[{_isCheat}, {string.Join(";", _cheatCardIds.Select(t => t.ToString()))}, {string.Join(";", _deck.Skip(_popIndex).Select(t => t.ToId().ToString()))}]";
+            => $"[{_isCheat}, {string.Join(";", (_cheatCardIds ?? new List<int>().AsReadOnly()).Select(t => t.ToString()))}, {string.Join(";", _deck.Select(t => t.ToId().ToString()))}]";
 
         public static Deck Deserialize(string serial)
         {
             var split = serial.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
-            var isCheat = Convert.ToBoolean(split[0]);
-            var cardIds = split[2].Split(new char[] { ';' }, StringSplitOptions.RemoveEmptyEntries ).Select(t => Convert.ToInt32(t));
+            var isCheat = Convert.ToBoolean(split[0].TrimStart('['));
+            var cardIds = split[2].TrimEnd(']').Split(new char[] { ';' }, StringSplitOptions.RemoveEmptyEntries ).Select(t => Convert.ToInt32(t));
             var cheatCardIds = split[1].Split(new char[] { ';' }, StringSplitOptions.RemoveEmptyEntries).Select(t => Convert.ToInt32(t));
             return new Deck(cardIds, isCheat, cheatCardIds);
         }

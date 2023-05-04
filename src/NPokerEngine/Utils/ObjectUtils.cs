@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using System.Reflection;
+using System.Linq;
 
 namespace NPokerEngine.Utils
 {
@@ -11,7 +12,8 @@ namespace NPokerEngine.Utils
         {
             var type = obj.GetType();
             var properties = type.GetFields(BindingFlags.Instance | BindingFlags.NonPublic);
-            var clonedObj = Activator.CreateInstance(type);
+            var constructorParametersCount = type.GetConstructors().Select(t => t.GetParameters().Length).Max();
+            var clonedObj = Activator.CreateInstance(type, Enumerable.Range(0, constructorParametersCount).Select(t => (object)null).ToArray());
             foreach (var property in properties)
             {
                 object value = property.GetValue(obj);

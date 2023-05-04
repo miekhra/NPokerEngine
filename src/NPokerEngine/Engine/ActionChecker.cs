@@ -21,12 +21,12 @@ namespace NPokerEngine.Engine
 
         private ActionChecker() { }
 
-        public Tuple<string, int> CorrectAction(
+        public (string action, float amount) CorrectAction(
             List<Player> players,
             int playerPosition,
-            int sbAmount,
+            float sbAmount,
             string action,
-            int amount = 0)
+            float amount = 0)
         {
             if (this.IsAllin(players[playerPosition], action, amount))
             {
@@ -37,10 +37,10 @@ namespace NPokerEngine.Engine
                 action = "fold";
                 amount = 0;
             }
-            return Tuple.Create(action, amount);
+            return (action, amount);
         }
 
-        public bool IsAllin(Player player, string action, int betAmount)
+        public bool IsAllin(Player player, string action, float betAmount)
         {
             if (action == "call")
             {
@@ -56,18 +56,18 @@ namespace NPokerEngine.Engine
             }
         }
 
-        public int NeedAmountForAction(Player player, int amount)
+        public float NeedAmountForAction(Player player, float amount)
         {
             return amount - player.PaidSum();
         }
 
-        public List<Dictionary<string, object>> LegalActions(List<Player> players, int playerPosition, int sbAmount)
+        public List<Dictionary<string, object>> LegalActions(List<Player> players, int playerPosition, float sbAmount)
         {
             var min_raise = this.MinRaiseAmount(players, sbAmount);
             var max_raise = players[playerPosition].Stack + players[playerPosition].PaidSum();
             if (max_raise < min_raise)
             {
-                min_raise = -1;
+                min_raise = max_raise = -1;
             }
             return new List<Dictionary<string, object>> {
                     new Dictionary<string, object> {
@@ -113,9 +113,9 @@ namespace NPokerEngine.Engine
         internal bool IsIlLegal(
             List<Player> players,
             int playerPosition,
-            int sbAmount,
+            float sbAmount,
             string action,
-            int amount = 0)
+            float amount = 0)
         {
             if (action == "fold")
             {
@@ -132,30 +132,31 @@ namespace NPokerEngine.Engine
             return false;
         }
 
-        public int AgreeAmount(IEnumerable<Player> players)
+        public float AgreeAmount(IEnumerable<Player> players)
         {
             var last_raise = this.FetchLastRaise(players);
-            return last_raise != null ? (int)last_raise["amount"] : 0;
+            return last_raise != null ? (float)last_raise["amount"] : 0;
         }
 
-        private bool IsIlLegalCall(IEnumerable<Player> players, int amount)
+        private bool IsIlLegalCall(IEnumerable<Player> players, float amount)
         {
             return amount != this.AgreeAmount(players);
         }
 
-        private bool IsIllegalRaise(IEnumerable<Player> players, int amount, int sbAmount)
+        private bool IsIllegalRaise(IEnumerable<Player> players, float amount, float sbAmount)
         {
             return this.MinRaiseAmount(players, sbAmount) > amount;
         }
 
-        private int MinRaiseAmount(IEnumerable<Player> players, int sbAmount)
+        private float MinRaiseAmount(IEnumerable<Player> players, float sbAmount)
         {
             var raise = this.FetchLastRaise(players);
             // the least min_raise allowed is BB
-            return raise != null ? (int)raise["amount"] + Math.Max((int)raise["add_amount"], (int)(sbAmount * 2)) : sbAmount * 2;
+            //return raise != null ? (float)raise["amount"] + Math.Max((float)raise["add_amount"], (float)(sbAmount * 2)) : sbAmount * 2;
+            return raise != null ? ((float)raise["amount"] + (float)raise["add_amount"]) : (sbAmount * 2);
         }
 
-        private bool IsShortOfMoney(Player player, int amount)
+        private bool IsShortOfMoney(Player player, float amount)
         {
             return player.Stack < amount - player.PaidSum();
         }
@@ -164,6 +165,7 @@ namespace NPokerEngine.Engine
         {
             var raiseHistoriesQuery = players
                 .SelectMany(p => p.ActionHistories.Select(h => h))
+                .Where(h => h != null)
                 .Where(h => __raiseActionNames.Contains(h["action"]))
                 .ToList();
 

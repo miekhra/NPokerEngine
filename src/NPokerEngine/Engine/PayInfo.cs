@@ -10,18 +10,19 @@ namespace NPokerEngine.Engine
         public const int ALLIN = 1;
         public const int FOLDED = 2;
 
-        private int _amount, _status;
+        internal float _amount;
+        internal int _status;
 
         public int Status => _status;
-        public int Amount => _amount;
+        public float Amount => _amount;
 
-        public PayInfo(int amount = 0, int status = 0)
+        public PayInfo(float amount = 0, int status = 0)
         {
             _amount = amount;
             _status = status;
         }
 
-        public virtual void UpdateByPay(int amount)
+        public virtual void UpdateByPay(float amount)
         {
             this._amount += amount;
         }

@@ -8,44 +8,24 @@ namespace NPokerEngine.Engine
 {
     public class Table
     {
-        private static string __playerNotFound = "not_found";
+        internal static string __playerNotFound = "not_found";
         public static string __exceedCardSizeMsg = "Community card is already full";
 
         private Deck _deck;
-        private int _dealerButton;
+        internal int _dealerButton;
         private int? _sbPosition, _bbPosition;
-        private Seats _seats;
+        internal Seats _seats;
         private List<Card> _communityCards;
 
         public Seats Seats => _seats;
         public int DealerButton => _dealerButton;
         public Deck Deck => _deck;
 
-        public int SmallBlindPosition
-        {
-            get 
-            {
-                if (!_sbPosition.HasValue)
-                {
-                    throw new ArgumentException("small blind position is not yet set");
-                } 
-                return _sbPosition.Value; 
-            }
-        }
+        public int? SmallBlindPosition => _sbPosition;
 
-        public int BigBlindPosition
-        {
-            get
-            {
-                if (!_bbPosition.HasValue)
-                {
-                    throw new ArgumentException("big blind position is not yet set");
-                }
-                return _bbPosition.Value;
-            }
-        }
+        public int? BigBlindPosition => _bbPosition;
 
-        public IReadOnlyCollection<Card> CommunityCars 
+        public IReadOnlyCollection<Card> CommunityCards 
             => _communityCards.AsReadOnly();
 
         public Table(Deck cheatDeck = null)
@@ -102,14 +82,17 @@ namespace NPokerEngine.Engine
 
         private int FindEntitledPlayerPosition(int startPosition, Func<Player, bool> checkMethod)
         {
-            var searchTargets = this._seats.Players.ToList();
-            searchTargets.AddRange(this._seats.Players.ToList());
-            searchTargets = searchTargets.Skip(startPosition + 1).Take(startPosition + this._seats.Players.Count + 1).ToList();
+            var searchTargets = this._seats.Players
+                .Concat(this._seats.Players)
+                .Skip(startPosition + 1)
+                .Take(this._seats.Players.Count)
+                .ToList();
             Debug.Assert(searchTargets.Count == this._seats.Players.Count);
             var matchedPlayers = searchTargets.Where(t => checkMethod(t));
             if (!matchedPlayers.Any())
             {
-                throw new KeyNotFoundException(__playerNotFound);
+                return -1;
+                //throw new KeyNotFoundException(__playerNotFound);
             }
             return this._seats.Players.IndexOf(matchedPlayers.First());
         }

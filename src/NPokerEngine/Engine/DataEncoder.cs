@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -59,10 +60,10 @@ namespace NPokerEngine.Engine
                             select this.EncodePlayer(player)).ToList()}};
         }
 
-        public virtual object EncodePot(IEnumerable<Player> players)
+        public virtual Dictionary<string, object> EncodePot(IEnumerable<Player> players)
         {
             var pots = GameEvaluator.Instance.CreatePot(players);
-            var main = new Dictionary<object, object> {
+            var main = new Dictionary<string, object> {
                     {
                         "amount",
                         pots[0]["amount"]}};
@@ -73,10 +74,15 @@ namespace NPokerEngine.Engine
                     {
                         "eligibles",
                         (from p in ((IEnumerable<Player>)sidepot["eligibles"])
-                            select p.Uuid).ToList()}};
-            var side = (from sidepot in pots[1]
-                        select genHsh(sidepot.Value as Dictionary<string, object>)).ToList();
-            return new Dictionary<object, object> {
+                            select p.Uuid).ToList()
+                    }};
+
+            //var sidepots = pots.Count > 1 ? pots.Skip(1)
+
+            var side = pots.Count > 1 ? 
+                        (from sidepot in pots.Skip(1) select genHsh(sidepot)).ToList() :
+                        new List<Dictionary<string, object>>();
+            return new Dictionary<string, object> {
                     {
                         "main",
                         main},
@@ -116,33 +122,33 @@ namespace NPokerEngine.Engine
             return hsh;
         }
 
-        public virtual object EncodeValidActions(int callAmount, int minBetAmount, int maxBetAmount)
+        public virtual Dictionary<string, object> EncodeValidActions(int callAmount, int minBetAmount, int maxBetAmount)
         {
-            return new Dictionary<object, object> {
+            return new Dictionary<string, object> {
                     {
                         "valid_actions",
-                        new List<object> {
-                            new Dictionary<object, object> {
+                        new List<Dictionary<string, object>> {
+                            new Dictionary<string, object> {
                                 {
                                     "action",
                                     "fold"},
                                 {
                                     "amount",
                                     0}},
-                            new Dictionary<object, object> {
+                            new Dictionary<string, object> {
                                 {
                                     "action",
                                     "call"},
                                 {
                                     "amount",
                                     callAmount}},
-                            new Dictionary<object, object> {
+                            new Dictionary<string, object> {
                                 {
                                     "action",
                                     "raise"},
                                 {
                                     "amount",
-                                    new Dictionary<object, object> {
+                                    new Dictionary<string, object> {
                                         {
                                             "min",
                                             minBetAmount},
@@ -180,14 +186,43 @@ namespace NPokerEngine.Engine
 
         public Dictionary<string, object> EncodeActionHistories(Table table)
         {
+            //var street_name = new List<string> {
+            //                 "preflop",
+            //                 "flop",
+            //                 "turn",
+            //                 "river"
+            //             };
+
+            var allStreetHistories = new List<List<List<Dictionary<string, object>>>>();
+            foreach (var ix in Enumerable.Range(0, 4))
+            {
+                allStreetHistories.Add(new List<List<Dictionary<string, object>>>());
+                var streetType = (StreetType)Enum.ToObject(typeof(StreetType), (byte)ix);
+                foreach (var player in table.Seats.Players)
+                {
+                    if (!player.RoundActionHistories.ContainsKey(streetType)) continue;
+                    allStreetHistories[ix].Add(player.RoundActionHistories[streetType]);
+                }
+                //var t = table.Seats.Players.Select(p => p.RoundActionHistories.ContainsKey(streetType) ? p.RoundActionHistories[streetType] : new List<Dictionary<string, object>>()).Cast<Dictionary<string, object>>().ToList();
+            }
+
             object start_positions;
-            var all_street_histories = (from street in Enumerable.Range(0, 4)
-                                        select (from player in table.Seats.Players
-                                                select player.RoundActionHistories[(StreetType)Enum.ToObject(typeof(StreetType), (byte)street)]).ToList()).ToList();
-            var past_street_histories = (from histories in all_street_histories
-                                         where ((from e in histories
-                                                    select (e != null)).Any())
-                                         select histories).ToList();
+            var all_street_histories = allStreetHistories;
+            //foreach (var allStreetHistory in all_street_histories)
+            //{
+            //    foreach (var sh in allStreetHistory)
+            //    {
+
+            //    }
+            //}
+            //var all_street_histories = (from street in Enumerable.Range(0, 4)
+            //                            select (from player in table.Seats.Players
+            //                                    select player.RoundActionHistories.ContainsKey((StreetType)Enum.ToObject(typeof(StreetType), (byte)street)) ? player.RoundActionHistories[(StreetType)Enum.ToObject(typeof(StreetType), (byte)street)] : new List<Dictionary<string, object>>()).ToList()).ToList();
+            //var past_street_histories = (from histories in all_street_histories
+            //                             where ((from e in histories
+            //                                     select (e != null)).Any())
+            //                             select histories).ToList();
+            var past_street_histories = all_street_histories.Where(t => t.Count > 0).ToList();
             var current_street_histories = (from player in table.Seats.Players
                                             select player.ActionHistories).ToList();
             //var street_histories = past_street_histories + new List<object> {
@@ -197,48 +232,68 @@ namespace NPokerEngine.Engine
             past_street_histories.Add(current_street_histories);
             var street_histories = past_street_histories;
 
-			if (table.Seats.Players.Count == 2)
-            {
-                // in Heads-Up after PreFlop, the BigBlind is the first to make an action
-                //start_positions = new List<object> {
-                //        table.SmallBlindPosition
-                //    } + new List<object> {
-                //        table.BigBlindPosition
-                //    } * 3;
-                start_positions = new List<int> 
-                { 
-                    table.SmallBlindPosition, 
-                    table.BigBlindPosition, 
-                    table.BigBlindPosition, 
-                    table.BigBlindPosition 
-                };
+            //foreach (var sh in street_histories)
+            //{
+            //    foreach (var hst in sh)
+            //    {
+            //        var ordered = OrderHistories(table.SmallBlindPosition.Value, sh);
+            //    }
+                
+            //}
 
-			}
-            else
-            {
-				start_positions = new List<int>
-				{
-					table.SmallBlindPosition,
-					table.SmallBlindPosition,
-					table.SmallBlindPosition,
-					table.SmallBlindPosition
-				};
-			}
+            
+
+            //if (table.Seats.Players.Count == 2)
+            //{
+            //    // in Heads-Up after PreFlop, the BigBlind is the first to make an action
+            //    //start_positions = new List<object> {
+            //    //        table.SmallBlindPosition
+            //    //    } + new List<object> {
+            //    //        table.BigBlindPosition
+            //    //    } * 3;
+            //    start_positions = new List<int?>
+            //             {
+            //                 table.SmallBlindPosition,
+            //                 table.BigBlindPosition,
+            //                 table.BigBlindPosition,
+            //                 table.BigBlindPosition
+            //             };
+
+            //}
+            //else
+            //{
+            //    start_positions = new List<int?>
+            //    {
+            //        table.SmallBlindPosition,
+            //        table.SmallBlindPosition,
+            //        table.SmallBlindPosition,
+            //        table.SmallBlindPosition
+            //    };
+            //}
             //street_histories = (from _tup_1 in zip(street_histories, start_positions).Chop((histories, pos) => (histories, pos))
             //                    let histories = _tup_1.Item1
             //                    let pos = _tup_1.Item2
             //                    select this.OrderHistories(pos, histories)).ToList();
-            var street_name = new List<object> {
-                    "preflop",
-                    "flop",
-                    "turn",
-                    "river"
-                };
-            var action_histories = street_histories.Zip(street_name, (t1, t2) => (t1, t2)).ToDictionary(k => k.t2.ToString(), v => v.t2);//  zip(street_name, street_histories).ToDictionary(_tup_2 => _tup_2.Item1, _tup_2 => _tup_2.Item2);
+            var street_name = new List<string> {
+                             "preflop",
+                             "flop",
+                             "turn",
+                             "river"
+                         };
+
+            var ah = new Dictionary<string, List<Dictionary<string, object>>>();
+            for (int ix = 0; ix < street_name.Count; ix++)
+            {
+                if (street_histories.Count < ix+1) continue;
+                ah[street_name[ix]] = OrderHistories(table.SmallBlindPosition.Value, street_histories[ix]); //street_histories[ix].SelectMany(t => t).ToList();
+            }
+
+
+            //var action_histories = street_histories.Zip(street_name, (t1, t2) => (t1, t2)).ToDictionary(k => k.t2.ToString(), v => v.t2);//  zip(street_name, street_histories).ToDictionary(_tup_2 => _tup_2.Item1, _tup_2 => _tup_2.Item2);
             return new Dictionary<string, object> {
-                    {
-                        "action_histories",
-                        action_histories}};
+                             {
+                                 "action_histories",
+                                 ah/*action_histories*/}};
         }
 
         public Dictionary<string, object> EncodeWinners(IEnumerable<Player> winners)
@@ -263,7 +318,7 @@ namespace NPokerEngine.Engine
                         this.EncodePot(((Table)state["table"]).Seats.Players)},
                     {
                         "community_card",
-                        (from card in ((Table)state["table"]).CommunityCars
+                        (from card in ((Table)state["table"]).CommunityCards
                             select card.ToString()).ToList()},
                     {
                         "dealer_btn",
@@ -344,25 +399,59 @@ namespace NPokerEngine.Engine
                     select this.EncodePlayer(player)).ToList();
         }
 
-        public List<Dictionary<int, object>> OrderHistories(int startPos, IList<Dictionary<int,object>> playerHistories)
-        {
-            var orderedPlayerHistories = (from i in Enumerable.Range(0, playerHistories.Count)
-                                            select playerHistories[(startPos + i) % playerHistories.Count]).ToList();
-            var allPlayerHistories = (from histories in orderedPlayerHistories
-                                      select histories).ToList();
-            var maxLen = (from h in orderedPlayerHistories
-                              select h.Count).Max();
-            var unifiedHistories = (from l in orderedPlayerHistories
-                                     select this.UnifyLength(maxLen, l)).ToList();
-            //unifiedHistories.Zip(new Dictionary<int, object>());
-            //var orderedHistories = reduce((acc, zp) => acc + zp.ToList(), zip(unified_histories), new List<object>());
-            //unifiedHistories.Zip()
-            var orderedHistories = unifiedHistories;
 
-			return (from history in orderedHistories
-                    where !(history == null)
-                    select history).ToList();
+        public List<Dictionary<string, object>> OrderHistories(int startPos, List<List<Dictionary<string, object>>> playerHistories)
+        {
+            List<List<Dictionary<string, object>>> orderedPlayerHistories = new List<List<Dictionary<string, object>>>();
+            for (int ix = 0; ix < playerHistories.Count; ix++)
+            {
+                var current = new List<Dictionary<string, object>>();
+                foreach (var item in (playerHistories[(startPos + ix) % playerHistories.Count]))
+                {
+                    current.Add(item.ToDictionary(k => k.Key, v => v.Value));
+                }
+                orderedPlayerHistories.Add(current);
+            }
+
+            var allPlayerHistories = orderedPlayerHistories.AsEnumerable().ToList();
+
+            var maxLen = allPlayerHistories.Select(x => x.Count).Max();
+            foreach (var current in allPlayerHistories)
+            {
+                while (current.Count < maxLen) current.Add(null);
+            }
+
+            var orderedHistories = new List<Dictionary<string, object>>();
+            for (int ix = 0; ix < maxLen; ix++)
+            {
+                foreach (var item in allPlayerHistories)
+                {
+                    if (item[ix] == null) continue;
+                    orderedHistories.Add(item[ix]);
+                }
+            }
+            return orderedHistories;
         }
+
+   //     public List<Dictionary<int, object>> OrderHistories(int startPos, IList<Dictionary<int,object>> playerHistories)
+   //     {
+   //         var orderedPlayerHistories = (from i in Enumerable.Range(0, playerHistories.Count)
+   //                                         select playerHistories[(startPos + i) % playerHistories.Count]).ToList();
+   //         var allPlayerHistories = (from histories in orderedPlayerHistories
+   //                                   select histories).ToList();
+   //         var maxLen = (from h in orderedPlayerHistories
+   //                           select h.Count).Max();
+   //         var unifiedHistories = (from l in orderedPlayerHistories
+   //                                  select this.UnifyLength(maxLen, l)).ToList();
+   //         //unifiedHistories.Zip(new Dictionary<int, object>());
+   //         //var orderedHistories = reduce((acc, zp) => acc + zp.ToList(), zip(unified_histories), new List<object>());
+   //         //unifiedHistories.Zip()
+   //         var orderedHistories = unifiedHistories;
+
+			//return (from history in orderedHistories
+   //                 where !(history == null)
+   //                 select history).ToList();
+   //     }
 
         private Dictionary<int, object> UnifyLength(int maxLen, Dictionary<int, object> lst)
         {

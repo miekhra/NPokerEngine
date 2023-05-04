@@ -13,10 +13,24 @@ namespace NPokerEngine.Engine
         private int _ante;
         private int _initialStack;
         private List<object> _uuidList;
-        private MessageHandler _messageHandler;
+        internal MessageHandler _messageHandler;
         private MessageSummarizer _messageSummarizer;
         private Table _table;
         private Dictionary<object, object> _blindStructure;
+
+        public Table Table => _table;
+
+        internal Dealer(Dealer dealer) 
+        {
+            this._smallBlindAmount = dealer._smallBlindAmount;
+            this._ante = dealer._ante;
+            this._initialStack = dealer._initialStack;
+            this._uuidList = dealer._uuidList;
+            this._messageHandler = dealer._messageHandler;
+            this._messageSummarizer = dealer._messageSummarizer;
+            this._table = dealer._table;
+            this._blindStructure = dealer._blindStructure;
+        }
 
         public Dealer(int smallBlindAmount, int initialStack, int ante = 0)
         {
@@ -69,9 +83,9 @@ namespace NPokerEngine.Engine
 
         public Table PlayRound(int round_count, int blind_amount, int ante, Table table)
         {
-            var _tup_1 = (Tuple<Dictionary<string, object>, IEnumerable<Tuple<object, IDictionary>>>)RoundManager.Instance.StartNewRound(round_count, blind_amount, ante, table);
+            var _tup_1 = RoundManager.Instance.StartNewRound(round_count, blind_amount, ante, table);
             var state = _tup_1.Item1;
-            var msgs = _tup_1.Item2;
+            var msgs = (IEnumerable<Tuple<object, IDictionary>>)_tup_1.Item2;
             while (true)
             {
                 this.MessageCheck(msgs, (StreetType)state["street"]);
@@ -205,7 +219,7 @@ namespace NPokerEngine.Engine
                 table.ShiftDealerButton();
             }
             var search_targets = players.Concat(players).Concat(players).ToList();
-            search_targets = new ArraySegment<Player>(search_targets.ToArray(), table.DealerButton + 1, players.Count).ToList();
+            search_targets = search_targets.Skip(table.DealerButton + 1).Take(players.Count).ToList(); //new ArraySegment<Player>(search_targets.ToArray(), table.DealerButton + 1, players.Count).ToList();
             // exclude player who cannot pay small blind
             var sb_player = this.FindFirstElligiblePlayer(search_targets, sb_amount + ante);
             var sb_relative_pos = search_targets.IndexOf(sb_player);
@@ -214,7 +228,7 @@ namespace NPokerEngine.Engine
                 player.Stack = 0;
             }
             // exclude player who cannot pay big blind
-            search_targets = new ArraySegment<Player>(search_targets.ToArray(), sb_relative_pos + 1, sb_relative_pos + players.Count).ToList();
+            search_targets = search_targets.Skip(sb_relative_pos + 1).Take(players.Count - 1).ToList(); //new ArraySegment<Player>(search_targets.ToArray(), sb_relative_pos + 1, sb_relative_pos + players.Count).ToList();
             var bb_player = this.FindFirstElligiblePlayer(search_targets, sb_amount * 2 + ante, sb_player);
             if (sb_player == bb_player)
             {
@@ -229,17 +243,21 @@ namespace NPokerEngine.Engine
             else
             {
                 var bb_relative_pos = search_targets.IndexOf(bb_player);
-                foreach (var player in new ArraySegment<Player>(search_targets.ToArray(), 0, bb_relative_pos))
+                for (int ix = 0; ix < bb_relative_pos; ix++)
                 {
-                    player.Stack = 0;
+                    search_targets[ix].Stack = 0;
                 }
+                //foreach (var player in new ArraySegment<Player>(search_targets.ToArray(), 0, bb_relative_pos))
+                //{
+                //    player.Stack = 0;
+                //}
             }
             return Tuple.Create(players.IndexOf(sb_player), players.IndexOf(bb_player));
         }
 
         private Player FindFirstElligiblePlayer(IEnumerable<Player> players, int need_amount, Player @default = null)
         {
-            if (@default != null)
+            if (@default != null && players.Contains(@default))
             {
                 return (from player in players
                             where player.Stack >= need_amount
@@ -302,7 +320,7 @@ namespace NPokerEngine.Engine
             }
         }
 
-        private object FetchUuid()
+        public virtual object FetchUuid()
         {
             var last = _uuidList.Last();
             _uuidList.Remove(last);

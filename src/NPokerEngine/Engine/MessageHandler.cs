@@ -7,7 +7,7 @@ namespace NPokerEngine.Engine
 {
     public class MessageHandler
     {
-        private Dictionary<object, object> algo_owner_map;
+        internal Dictionary<object, object> algo_owner_map;
 
         public MessageHandler()
         {

@@ -5,7 +5,7 @@ using System.Text;
 
 namespace NPokerEngine.Engine
 {
-    public class HandEvaluator
+    public class HandEvaluator : IHandEvaluator
     {
         public const int HIGHCARD = 0;
         public const int ONEPAIR = 1 << 8;
@@ -49,17 +49,16 @@ namespace NPokerEngine.Engine
             }
         }
 
+        internal Func<IEnumerable<Card>, IEnumerable<Card>, int> _evalFunc = null;
         public Dictionary<string, object> GenHandRankInfo(IEnumerable<Card> hole, IEnumerable<Card> community)
         {
-            var hand = this.EvalHand(hole, community);
+            var hand = _evalFunc == null ? this.EvalHand(hole, community) : _evalFunc(hole, community);
             var row_strength = this.MaskHandStrength(hand);
             var strength = HAND_STRENGTH_MAP[row_strength];
             var hand_high = this.MaskHandHighRank(hand);
-            var hand_low = this.MaskHoleLowRank(hand);
-            var holes = (from card in hole
-                         select card.ToId()).ToList();
-            var hole_high = holes.Max();
-            var hole_low = holes.Min();
+            var hand_low = this.MaskHandLowRank(hand);
+            var hole_high = this.MaskHoleHighRank(hand);
+            var hole_low = this.MaskHoleLowRank(hand);
             return new Dictionary<string, object> {
                     {
                         "hand",
@@ -145,8 +144,11 @@ namespace NPokerEngine.Engine
 
         private bool TryEvalStraightFlash(IEnumerable<Card> cards, out int result)
         {
-            result = SearchStraightFlash(cards) << 4;
-            return result != -1;
+            result = SearchStraightFlash(cards);
+            if (result == -1) return false;
+
+            result = result << 4;
+            return true;
         }
 
         private bool TryEvalFourCards(IEnumerable<Card> cards, out int result)
@@ -167,20 +169,29 @@ namespace NPokerEngine.Engine
 
         private bool TryEvalFlash(IEnumerable<Card> cards, out int result)
         {
-            result = SearchFlash(cards) << 4;
-            return result != -1;
+            result = SearchFlash(cards);
+            if (result == -1) return false;
+
+            result = result << 4;
+            return true;
         }
 
         private bool TryEvalStraight(IEnumerable<Card> cards, out int result)
         {
-            result = SearchStraight(cards) << 4;
-            return result != -1;
+            result = SearchStraight(cards);
+            if (result == -1) return false;
+
+            result = result << 4;
+            return true;
         }
 
         private bool TryEvalThreeCards(IEnumerable<Card> cards, out int result)
         {
-            result = SearchThreeCards(cards) << 4;
-            return result != -1;
+            result = SearchThreeCards(cards);
+            if (result == -1) return false;
+
+            result = result << 4;
+            return true;
         }
 
         private bool TryEvalTwoPairs(IEnumerable<Card> cards, out int result)
@@ -338,31 +349,31 @@ namespace NPokerEngine.Engine
             return (ranks.Count <= 2) ? ranks : ranks.Take(2).ToList();
         }
 
-        private int MaskHandStrength(int bit)
+        internal int MaskHandStrength(int bit)
         {
             var mask = 511 << 16;
             return (bit & mask) >> 8;
         }
 
-        private int MaskHandHighRank(int bit)
+        internal int MaskHandHighRank(int bit)
         {
             var mask = 15 << 12;
             return (bit & mask) >> 12;
         }
 
-        private int MaskHandLowRank(int bit)
+        internal int MaskHandLowRank(int bit)
         {
             var mask = 15 << 8;
             return (bit & mask) >> 8;
         }
 
-        private int MaskHoleHighRank(int bit)
+        internal int MaskHoleHighRank(int bit)
         {
             var mask = 15 << 4;
             return (bit & mask) >> 4;
         }
 
-        private int MaskHoleLowRank(int bit)
+        internal int MaskHoleLowRank(int bit)
         {
             var mask = 15;
             return bit & mask;

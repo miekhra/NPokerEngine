@@ -17,13 +17,19 @@ namespace NPokerEngine.Engine
             } 
         }
 
+        private IHandEvaluator _handEvaluator;
 		private GameEvaluator() { }
 
-		public (List<Player> winners, List<Dictionary<string, object>> handInfo, Dictionary<int, int> prizeMap) Judge(Table table)
+        public void SetHandEvaluator(IHandEvaluator handEvaluator) 
         {
-            var winners = this.FindWinnersFrom(table.Seats.Players, table.CommunityCars);
-            var hand_info = this.GenHandInfoIfNeeded(table.Seats.Players, table.CommunityCars);
-            var prize_map = this.CalcPrizeDistribution(table.Seats.Players, table.CommunityCars);
+            _handEvaluator = handEvaluator;
+        }
+
+		public (List<Player> winners, List<Dictionary<string, object>> handInfo, Dictionary<int, float> prizeMap) Judge(Table table)
+        {
+            var winners = this.FindWinnersFrom(table.Seats.Players, table.CommunityCards);
+            var hand_info = this.GenHandInfoIfNeeded(table.Seats.Players, table.CommunityCards);
+            var prize_map = this.CalcPrizeDistribution(table.Seats.Players, table.CommunityCards);
             return (winners, hand_info, prize_map);
         }
 
@@ -35,14 +41,14 @@ namespace NPokerEngine.Engine
             return sidePots;
         }
 
-        private Dictionary<int, int> CalcPrizeDistribution(IEnumerable<Player> players, IEnumerable<Card> community)
+        private Dictionary<int, float> CalcPrizeDistribution(IEnumerable<Player> players, IEnumerable<Card> community)
         {
             var prize_map = this.CreatePrizeMap(players.Count());
             var pots = this.CreatePot(players);
             foreach (var pot in pots)
             {
                 var winners = this.FindWinnersFrom((IEnumerable<Player>)pot["eligibles"], community);
-                var prize = Convert.ToInt32((int)pot["amount"] / winners.Count);
+                var prize = Convert.ToSingle(Convert.ToSingle(pot["amount"]) / winners.Count);
                 foreach (var winner in winners)
                 {
                     prize_map[Array.IndexOf(players.ToArray(), winner)] += prize;
@@ -51,17 +57,17 @@ namespace NPokerEngine.Engine
             return prize_map;
         }
 
-        private Dictionary<int, int> CreatePrizeMap(int playerNum)
+        private Dictionary<int, float> CreatePrizeMap(int playerNum)
         {
-            return Enumerable.Range(0, playerNum).ToDictionary(k => k, v => 0);
+            return Enumerable.Range(0, playerNum).ToDictionary(k => k, v => Convert.ToSingle(0));
         }
 
-        private List<Player> FindWinnersFrom(IEnumerable<Player> players, IEnumerable<Card> community)
+        internal List<Player> FindWinnersFrom(IEnumerable<Player> players, IEnumerable<Card> community)
         {
-            Func<Player, int> scorePlayer = player => HandEvaluator.Instance.EvalHand(player.HoleCards, community);
+            Func<Player, int> scorePlayer = player => (_handEvaluator ?? HandEvaluator.Instance).EvalHand(player.HoleCards, community);
             var activePlayers = (from player in players
-                                  where player.IsActive()
-                                  select player).ToList();
+                                 where player.IsActive()
+                                 select player).ToList();
             var scores = (from player in activePlayers
                           select scorePlayer(player)).ToList();
             var bestScore = scores.Max();
@@ -75,6 +81,7 @@ namespace NPokerEngine.Engine
             var activePlayers = (from player in players
                                   where player.IsActive()
                                   select player).ToList();
+
             Func<Player, Dictionary<string, object>> genHandInfo = player => new Dictionary<string, object> 
             {
                 {
@@ -82,7 +89,7 @@ namespace NPokerEngine.Engine
                     player.Uuid},
                 {
                     "hand",
-                    HandEvaluator.Instance.GenHandRankInfo(player.HoleCards, community)
+                    (_handEvaluator ?? HandEvaluator.Instance).GenHandRankInfo(player.HoleCards, community)
                 }
             };
             return activePlayers.Count == 1 ? new List<Dictionary<string, object>>() : (from player in activePlayers
@@ -108,7 +115,7 @@ namespace NPokerEngine.Engine
             };
         }
 
-        private int GetPlayersPaySum(IEnumerable<Player> players)
+        private float GetPlayersPaySum(IEnumerable<Player> players)
         {
             return (from pay in this.GetPayInfo(players)
                     select pay.Amount).ToList().Sum();
@@ -122,7 +129,7 @@ namespace NPokerEngine.Engine
             var sidePots = new List<Dictionary<string, object>>();
             foreach (var payAmount in payAmounts)
             {
-                sidePots.Add(this.CreateSidepot(players, sidePots, payAmount));
+                sidePots.Add(this.CreateSidepot(players, sidePots, (int)payAmount));
             }
 
             return sidePots;
@@ -141,7 +148,7 @@ namespace NPokerEngine.Engine
 
         private int CalcSidepotSize(IEnumerable<Player> players, IEnumerable<Dictionary<string, object>> smallerSidePots, int allinAmount)
         {
-            Func<int, Player, int> addChipForPot = (pot, player) => pot + Math.Min(allinAmount, player.PayInfo.Amount);
+            Func<int, Player, int> addChipForPot = (pot, player) => pot + Math.Min(allinAmount, (int)player.PayInfo.Amount);
             var targetPotSize = players.Aggregate(0, addChipForPot);
             return targetPotSize - this.GetSidepotsSum(smallerSidePots);
         }

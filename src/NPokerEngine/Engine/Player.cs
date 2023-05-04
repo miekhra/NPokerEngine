@@ -7,6 +7,7 @@ using System.Text;
 
 namespace NPokerEngine.Engine
 {
+    [DebuggerDisplay("{Name},{Uuid},{Stack}")]
     public class Player
     {
         public const string ACTION_FOLD_STR = "FOLD";
@@ -24,20 +25,21 @@ namespace NPokerEngine.Engine
         private readonly string _name;
         private readonly string _uuid;
         private List<Card> _holeCards;
-        private int _stack;
+        private float _stack;
         private PayInfo _payInfo;
         private Dictionary<StreetType, List<Dictionary<string, object>>>  _roundActionHistories;
         private List<Dictionary<string, object>> _actionHistories;
 
         public string Name => _name;
         public string Uuid => _uuid;
-        public int Stack { get => _stack; set => _stack = value; }
+        public float Stack { get => _stack; set => _stack = value; }
         public PayInfo PayInfo => _payInfo;
         public List<Card> HoleCards => _holeCards;
         public List<Dictionary<string, object>> ActionHistories => _actionHistories;
         public Dictionary<StreetType, List<Dictionary<string, object>>> RoundActionHistories => _roundActionHistories;
+        public Dictionary<string, object> LastActionHistory => _actionHistories.LastOrDefault();
 
-		public Player(string uuid, int initialStack, string name = "No Name")
+        public Player(string uuid, int initialStack, string name = "No Name")
         {
             _uuid = uuid;
             _name = name;
@@ -48,15 +50,15 @@ namespace NPokerEngine.Engine
             _actionHistories = new List<Dictionary<string, object>>();
         }
 
-        public void AddHoleCards(List<Card> cards)
+        public void AddHoleCards(params Card[] cards)
         {
             if (_holeCards.Count != 0)
             {
                 throw new ArgumentException(__dupHoleMsg);
             }
-            if (cards.Count != 2)
+            if (cards.Length != 2)
             {
-                throw new ArgumentException(String.Format(__wrongNumHoleMsg, cards.Count)); ;
+                throw new ArgumentException(String.Format(__wrongNumHoleMsg, cards.Length)); ;
             }
             this._holeCards = cards.ToList();
         }
@@ -66,12 +68,12 @@ namespace NPokerEngine.Engine
             this._holeCards = new List<Card>();
         }
 
-        public void AppendChip(int amount)
+        public void AppendChip(float amount)
         {
             this._stack += amount;
         }
 
-        public void CollectBet(int amount)
+        public void CollectBet(float amount)
         {
             if (this._stack < amount)
             {
@@ -90,7 +92,7 @@ namespace NPokerEngine.Engine
             return this._payInfo.Status == PayInfo.PAY_TILL_END;
         }
 
-        public void AddActionHistory(ActionType kind, int chipAmount = 0, int addAmount = 0, int sbAmount = 0)
+        public void AddActionHistory(ActionType kind, int chipAmount = 0, float addAmount = 0, float sbAmount = 0)
         {
             Dictionary<string, object> history = null;
             if (kind == ActionType.FOLD)
@@ -151,7 +153,7 @@ namespace NPokerEngine.Engine
                 { "action", ACTION_FOLD_STR }
             };
 
-        private Dictionary<string, object> CallHistory(int betAmount)
+        private Dictionary<string, object> CallHistory(float betAmount)
             => new Dictionary<string, object>
             {
                 { "action", ACTION_CALL_STR },
@@ -159,7 +161,7 @@ namespace NPokerEngine.Engine
                 { "paid", betAmount - PaidSum() }
             };
 
-        public Dictionary<string, object> RaiseHistory(int betAmount, int addAmount)
+        public Dictionary<string, object> RaiseHistory(float betAmount, float addAmount)
             => new Dictionary<string, object> 
             {
                 { "action", ACTION_RAISE_STR },
@@ -168,7 +170,7 @@ namespace NPokerEngine.Engine
                 { "add_amount",addAmount}
             };
 
-        public Dictionary<string, object> BlindHistory(bool smallBlind, int sbAmount)
+        public Dictionary<string, object> BlindHistory(bool smallBlind, float sbAmount)
         {
             Debug.Assert(sbAmount != 0);
             var action = smallBlind ? ACTION_SMALL_BLIND : ACTION_BIG_BLIND;
@@ -194,10 +196,10 @@ namespace NPokerEngine.Engine
 
         private static string[] _nonPaidActions = { ACTION_FOLD_STR, ACTION_ANTE };
 
-        public int PaidSum()
+        public float PaidSum()
         {
-            var payHistoryQuery = this._actionHistories.Where(t => !_nonPaidActions.Contains((string)t["action"])); //object.Equals(t["action"], ACTION_FOLD_STR) && object.Equals(t["action"], ACTION_ANTE));
-            return payHistoryQuery.Any() ? Convert.ToInt32(payHistoryQuery.Last()["amount"]) : 0;
+            var payHistoryQuery = this._actionHistories.Where(t => t != null).Where(t => !_nonPaidActions.Contains((string)t["action"]));
+            return payHistoryQuery.Any() ? Convert.ToSingle(payHistoryQuery.Last()["amount"]) : 0f;
         }
     }
 }
