@@ -157,7 +157,7 @@ namespace NPokerEngine.Tests.Engine
         {
             _player.AddActionHistory(ActionType.FOLD);
 
-            _player.ActionHistories.Last()["action"].Should().Be(Player.ACTION_FOLD_STR);
+            _player.ActionHistories.Last().ActionType.Should().Be(ActionType.FOLD);
         }
 
         [TestMethod]
@@ -167,9 +167,9 @@ namespace NPokerEngine.Tests.Engine
 
             using (new AssertionScope())
             {
-                _player.LastActionHistory["action"].Should().Be(Player.ACTION_CALL_STR);
-                _player.LastActionHistory["amount"].Should().Be(10);
-                _player.LastActionHistory["paid"].Should().Be(10);
+                _player.LastActionHistory.ActionType.Should().Be(ActionType.CALL);
+                _player.LastActionHistory.Amount.Should().Be(10);
+                _player.LastActionHistory.Paid.Should().Be(10);
             }
         }
 
@@ -181,8 +181,8 @@ namespace NPokerEngine.Tests.Engine
 
             using (new AssertionScope())
             {
-                _player.LastActionHistory["amount"].Should().Be(20);
-                _player.LastActionHistory["paid"].Should().Be(10);
+                _player.LastActionHistory.Amount.Should().Be(20);
+                _player.LastActionHistory.Paid.Should().Be(10);
             }
         }
 
@@ -193,10 +193,10 @@ namespace NPokerEngine.Tests.Engine
 
             using (new AssertionScope())
             {
-                _player.LastActionHistory["action"].Should().Be(Player.ACTION_RAISE_STR);
-                _player.LastActionHistory["amount"].Should().Be(10);
-                _player.LastActionHistory["paid"].Should().Be(10);
-                _player.LastActionHistory["add_amount"].Should().Be(5);
+                _player.LastActionHistory.ActionType.Should().Be(ActionType.RAISE);
+                _player.LastActionHistory.Amount.Should().Be(10);
+                _player.LastActionHistory.Paid.Should().Be(10);
+                _player.LastActionHistory.AddAmount.Should().Be(5);
             }
         }
 
@@ -208,8 +208,8 @@ namespace NPokerEngine.Tests.Engine
 
             using (new AssertionScope())
             {
-                _player.LastActionHistory["amount"].Should().Be(20);
-                _player.LastActionHistory["paid"].Should().Be(10);
+                _player.LastActionHistory.Amount.Should().Be(20);
+                _player.LastActionHistory.Paid.Should().Be(10);
             }
         }
 
@@ -220,9 +220,9 @@ namespace NPokerEngine.Tests.Engine
 
             using (new AssertionScope())
             {
-                _player.LastActionHistory["action"].Should().Be(Player.ACTION_SMALL_BLIND);
-                _player.LastActionHistory["amount"].Should().Be(5);
-                _player.LastActionHistory["add_amount"].Should().Be(5);
+                _player.LastActionHistory.ActionType.Should().Be(ActionType.SMALL_BLIND);
+                _player.LastActionHistory.Amount.Should().Be(5);
+                _player.LastActionHistory.AddAmount.Should().Be(5);
             }
         }
 
@@ -233,9 +233,9 @@ namespace NPokerEngine.Tests.Engine
 
             using (new AssertionScope())
             {
-                _player.LastActionHistory["action"].Should().Be(Player.ACTION_BIG_BLIND);
-                _player.LastActionHistory["amount"].Should().Be(10);
-                _player.LastActionHistory["add_amount"].Should().Be(5);
+                _player.LastActionHistory.ActionType.Should().Be(ActionType.BIG_BLIND);
+                _player.LastActionHistory.Amount.Should().Be(10);
+                _player.LastActionHistory.AddAmount.Should().Be(5);
             }
         }
 
@@ -246,8 +246,8 @@ namespace NPokerEngine.Tests.Engine
 
             using (new AssertionScope())
             {
-                _player.LastActionHistory["action"].Should().Be(Player.ACTION_ANTE);
-                _player.LastActionHistory["amount"].Should().Be(10);
+                _player.LastActionHistory.ActionType.Should().Be(ActionType.ANTE);
+                _player.LastActionHistory.Amount.Should().Be(10);
             }
         }
 
@@ -270,7 +270,7 @@ namespace NPokerEngine.Tests.Engine
                 _player.SaveStreetActionHistories(StreetType.PREFLOP);
 
                 _player.RoundActionHistories[StreetType.PREFLOP].Should().HaveCount(1);
-                _player.RoundActionHistories[StreetType.PREFLOP][0]["action"].Should().Be(Player.ACTION_BIG_BLIND);
+                _player.RoundActionHistories[StreetType.PREFLOP][0].ActionType.Should().Be(ActionType.BIG_BLIND);
 
                 _player.ActionHistories.Should().HaveCount(0);
             }

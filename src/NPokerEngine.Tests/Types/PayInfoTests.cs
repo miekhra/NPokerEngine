@@ -8,7 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace NPokerEngine.Tests.Engine
+namespace NPokerEngine.Tests.Types
 {
     [TestClass]
     public class PayInfoTests
@@ -33,7 +33,7 @@ namespace NPokerEngine.Tests.Engine
         }
 
         [TestMethod]
-        public void UpdateByAllInTest() 
+        public void UpdateByAllInTest()
         {
             _payInfo.UpdateToAllin();
             using (new AssertionScope())

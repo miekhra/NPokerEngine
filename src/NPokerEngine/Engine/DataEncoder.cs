@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
+using NPokerEngine.Types;
 
 namespace NPokerEngine.Engine
 {
@@ -193,10 +194,10 @@ namespace NPokerEngine.Engine
             //                 "river"
             //             };
 
-            var allStreetHistories = new List<List<List<Dictionary<string, object>>>>();
+            var allStreetHistories = new List<List<List<ActionHistoryEntry>>>();
             foreach (var ix in Enumerable.Range(0, 4))
             {
-                allStreetHistories.Add(new List<List<Dictionary<string, object>>>());
+                allStreetHistories.Add(new List<List<ActionHistoryEntry>>());
                 var streetType = (StreetType)Enum.ToObject(typeof(StreetType), (byte)ix);
                 foreach (var player in table.Seats.Players)
                 {
@@ -281,7 +282,7 @@ namespace NPokerEngine.Engine
                              "river"
                          };
 
-            var ah = new Dictionary<string, List<Dictionary<string, object>>>();
+            var ah = new Dictionary<string, List<ActionHistoryEntry>>();
             for (int ix = 0; ix < street_name.Count; ix++)
             {
                 if (street_histories.Count < ix+1) continue;
@@ -400,15 +401,15 @@ namespace NPokerEngine.Engine
         }
 
 
-        public List<Dictionary<string, object>> OrderHistories(int startPos, List<List<Dictionary<string, object>>> playerHistories)
+        public List<ActionHistoryEntry> OrderHistories(int startPos, List<List<ActionHistoryEntry>> playerHistories)
         {
-            List<List<Dictionary<string, object>>> orderedPlayerHistories = new List<List<Dictionary<string, object>>>();
+            List<List<ActionHistoryEntry>> orderedPlayerHistories = new List<List<ActionHistoryEntry>>();
             for (int ix = 0; ix < playerHistories.Count; ix++)
             {
-                var current = new List<Dictionary<string, object>>();
+                var current = new List<ActionHistoryEntry>();
                 foreach (var item in (playerHistories[(startPos + ix) % playerHistories.Count]))
                 {
-                    current.Add(item.ToDictionary(k => k.Key, v => v.Value));
+                    current.Add(item);
                 }
                 orderedPlayerHistories.Add(current);
             }
@@ -421,7 +422,7 @@ namespace NPokerEngine.Engine
                 while (current.Count < maxLen) current.Add(null);
             }
 
-            var orderedHistories = new List<Dictionary<string, object>>();
+            var orderedHistories = new List<ActionHistoryEntry>();
             for (int ix = 0; ix < maxLen; ix++)
             {
                 foreach (var item in allPlayerHistories)

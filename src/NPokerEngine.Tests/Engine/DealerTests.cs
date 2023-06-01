@@ -2,6 +2,7 @@
 using FluentAssertions.Execution;
 using Moq;
 using NPokerEngine.Engine;
+using NPokerEngine.Types;
 using System;
 using System.Collections;
 using System.Collections.Generic;

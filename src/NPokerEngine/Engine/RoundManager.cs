@@ -1,4 +1,5 @@
-﻿using NPokerEngine.Utils;
+﻿using NPokerEngine.Types;
+using NPokerEngine.Utils;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -452,7 +453,7 @@ namespace NPokerEngine.Engine
         {
             // BigBlind should be asked action at least once
             var is_preflop = !player.RoundActionHistories.Any() || (player.RoundActionHistories.Any() && player.RoundActionHistories[0] == null);
-            var bb_ask_once = player.ActionHistories.Any() && player.ActionHistories.Count == 1 && player.ActionHistories[0]["action"]?.ToString() == Player.ACTION_BIG_BLIND;
+            var bb_ask_once = player.ActionHistories.Any() && player.ActionHistories.Count == 1 && player.ActionHistories[0].ActionType == ActionType.BIG_BLIND; // Player.ACTION_BIG_BLIND;
             var bb_ask_check = !is_preflop || !bb_ask_once;
             return bb_ask_check && player.PaidSum() == maxPay && player.ActionHistories.Count != 0 || new List<object> {
                     PayInfo.FOLDED,

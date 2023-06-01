@@ -4,19 +4,14 @@ using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
+using static System.Collections.Specialized.BitVector32;
 
-namespace NPokerEngine.Engine
+namespace NPokerEngine.Types
 {
     [DebuggerDisplay("{Name},{Uuid},{Stack}")]
-    public class Player
+    public class Player : ICloneable
     {
-        public const string ACTION_FOLD_STR = "FOLD";
-        public const string ACTION_CALL_STR = "CALL";
-        public const string ACTION_RAISE_STR = "RAISE";
-        public const string ACTION_SMALL_BLIND = "SMALLBLIND";
-        public const string ACTION_BIG_BLIND = "BIGBLIND";
-        public const string ACTION_ANTE = "ANTE";
-
+        private static ActionType[] _nonPaidActions = { ActionType.FOLD, ActionType.ANTE };
         private static string __dupHoleMsg = "Hole card is already set";
         private static string __wrongNumHoleMsg = "You passed  %d hole cards";
         private static string __wrongTypeHoleMsg = "You passed not Card object as hole card";
@@ -27,17 +22,17 @@ namespace NPokerEngine.Engine
         private List<Card> _holeCards;
         private float _stack;
         private PayInfo _payInfo;
-        private Dictionary<StreetType, List<Dictionary<string, object>>>  _roundActionHistories;
-        private List<Dictionary<string, object>> _actionHistories;
+        private Dictionary<StreetType, List<ActionHistoryEntry>> _roundActionHistories;
+        private List<ActionHistoryEntry> _actionHistories;
 
         public string Name => _name;
         public string Uuid => _uuid;
         public float Stack { get => _stack; set => _stack = value; }
         public PayInfo PayInfo => _payInfo;
         public List<Card> HoleCards => _holeCards;
-        public List<Dictionary<string, object>> ActionHistories => _actionHistories;
-        public Dictionary<StreetType, List<Dictionary<string, object>>> RoundActionHistories => _roundActionHistories;
-        public Dictionary<string, object> LastActionHistory => _actionHistories.LastOrDefault();
+        public List<ActionHistoryEntry> ActionHistories => _actionHistories;
+        public Dictionary<StreetType, List<ActionHistoryEntry>> RoundActionHistories => _roundActionHistories;
+        public ActionHistoryEntry LastActionHistory => _actionHistories.LastOrDefault();
 
         public Player(string uuid, int initialStack, string name = "No Name")
         {
@@ -47,7 +42,7 @@ namespace NPokerEngine.Engine
             _holeCards = new List<Card>();
             _payInfo = new PayInfo();
             _roundActionHistories = InitRoundActionHistories();
-            _actionHistories = new List<Dictionary<string, object>>();
+            _actionHistories = new List<ActionHistoryEntry>();
         }
 
         public void AddHoleCards(params Card[] cards)
@@ -94,7 +89,7 @@ namespace NPokerEngine.Engine
 
         public void AddActionHistory(ActionType kind, int chipAmount = 0, float addAmount = 0, float sbAmount = 0)
         {
-            Dictionary<string, object> history = null;
+            ActionHistoryEntry history = null;
             if (kind == ActionType.FOLD)
             {
                 history = this.FoldHistory();
@@ -123,20 +118,20 @@ namespace NPokerEngine.Engine
             {
                 throw new ArgumentException(String.Format("UnKnown action history is added (kind = %s)", kind));
             }
-            history["uuid"] = this._uuid;
+            history.Uuid = this._uuid;
             this._actionHistories.Add(history);
         }
 
         public void SaveStreetActionHistories(StreetType street)
         {
             this._roundActionHistories[street] = this._actionHistories;
-            this._actionHistories = new List<Dictionary<string, object>>();
+            this._actionHistories = new List<ActionHistoryEntry>();
         }
 
         public void ClearActionHistories()
         {
             this._roundActionHistories = this.InitRoundActionHistories();
-            this._actionHistories = new List<Dictionary<string, object>>();
+            this._actionHistories = new List<ActionHistoryEntry>();
         }
 
         public void ClearPayInfo()
@@ -144,62 +139,95 @@ namespace NPokerEngine.Engine
             this._payInfo = new PayInfo();
         }
 
-        private Dictionary<StreetType, List<Dictionary<string, object>>> InitRoundActionHistories() 
-            => new Dictionary<StreetType, List<Dictionary<string, object>>>();
+        private Dictionary<StreetType, List<ActionHistoryEntry>> InitRoundActionHistories()
+            => new Dictionary<StreetType, List<ActionHistoryEntry>>();
 
-        private Dictionary<string, object> FoldHistory()
-            => new Dictionary<string, object> 
+        private ActionHistoryEntry FoldHistory()
+            => new ActionHistoryEntry
             {
-                { "action", ACTION_FOLD_STR }
+                ActionType = ActionType.FOLD
             };
 
-        private Dictionary<string, object> CallHistory(float betAmount)
-            => new Dictionary<string, object>
+        private ActionHistoryEntry CallHistory(float betAmount)
+            => new ActionHistoryEntry
             {
-                { "action", ACTION_CALL_STR },
-                { "amount", betAmount },
-                { "paid", betAmount - PaidSum() }
+                ActionType = ActionType.CALL,
+                Amount = betAmount,
+                Paid = betAmount - this.PaidSum()
             };
 
-        public Dictionary<string, object> RaiseHistory(float betAmount, float addAmount)
-            => new Dictionary<string, object> 
+        public ActionHistoryEntry RaiseHistory(float betAmount, float addAmount)
+            => new ActionHistoryEntry
             {
-                { "action", ACTION_RAISE_STR },
-                { "amount", betAmount },
-                { "paid", betAmount - this.PaidSum()},
-                { "add_amount",addAmount}
+                ActionType = ActionType.RAISE,
+                Amount = betAmount,
+                Paid = betAmount - this.PaidSum(),
+                AddAmount = addAmount
             };
 
-        public Dictionary<string, object> BlindHistory(bool smallBlind, float sbAmount)
+        public ActionHistoryEntry BlindHistory(bool smallBlind, float sbAmount)
         {
             Debug.Assert(sbAmount != 0);
-            var action = smallBlind ? ACTION_SMALL_BLIND : ACTION_BIG_BLIND;
+            var action = smallBlind ? ActionType.SMALL_BLIND : ActionType.BIG_BLIND;
             var amount = smallBlind ? sbAmount : sbAmount * 2;
             var add_amount = sbAmount;
-            return new Dictionary<string, object> 
+            return new ActionHistoryEntry
             {
-                { "action", action },
-                { "amount", amount },
-                { "add_amount", add_amount }
+                ActionType = action,
+                Amount = amount,
+                AddAmount = add_amount
             };
         }
 
-        public Dictionary<string, object> AnteHistory(int payAmount)
+        public ActionHistoryEntry AnteHistory(float payAmount)
         {
             Debug.Assert(payAmount > 0);
-            return new Dictionary<string, object> 
+            return new ActionHistoryEntry
             {
-                { "action", ACTION_ANTE},
-                { "amount", payAmount}
+                ActionType = ActionType.ANTE,
+                Amount = payAmount,
             };
         }
-
-        private static string[] _nonPaidActions = { ACTION_FOLD_STR, ACTION_ANTE };
 
         public float PaidSum()
         {
-            var payHistoryQuery = this._actionHistories.Where(t => t != null).Where(t => !_nonPaidActions.Contains((string)t["action"]));
-            return payHistoryQuery.Any() ? Convert.ToSingle(payHistoryQuery.Last()["amount"]) : 0f;
+            var payHistoryQuery = this._actionHistories.Where(t => t != null).Where(t => !_nonPaidActions.Contains(t.ActionType));
+            return payHistoryQuery.Any() ? Convert.ToSingle(payHistoryQuery.Last().Amount) : 0f;
+        }
+
+        public object Clone()
+        {
+            var clone = new Player(_uuid, (int)_stack, Name);
+            clone.AddHoleCards(_holeCards.Select(c => Card.FromId(c.ToId())).ToArray());
+            foreach (var h in _actionHistories)
+            {
+                clone._actionHistories.Add(new ActionHistoryEntry
+                {
+                    ActionType = h.ActionType,
+                    Amount = h.Amount,
+                    AddAmount = h.AddAmount,
+                    Paid = h.Paid,
+                    Uuid = h.Uuid
+                });
+            }
+            foreach (var roundHistories in _roundActionHistories)
+            {
+                clone._roundActionHistories[roundHistories.Key] = new List<ActionHistoryEntry>();
+                foreach (var h in roundHistories.Value)
+                {
+                    clone._roundActionHistories[roundHistories.Key].Add(new ActionHistoryEntry
+                    {
+                        ActionType = h.ActionType,
+                        Amount = h.Amount,
+                        AddAmount = h.AddAmount,
+                        Paid = h.Paid,
+                        Uuid = h.Uuid
+                    });
+                }
+            }
+            clone._payInfo._amount = _payInfo._amount;
+            clone._payInfo._status = _payInfo._status;
+            return clone;
         }
     }
 }

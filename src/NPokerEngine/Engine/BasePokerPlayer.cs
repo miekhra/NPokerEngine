@@ -1,24 +1,24 @@
-﻿using NPokerEngine.Engine;
+﻿using NPokerEngine.Types;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
 
-namespace NPokerEngine
+namespace NPokerEngine.Engine
 {
     public abstract class BasePokerPlayer
     {
         private string _uuid;
-        public string Uuid 
-        { 
-            get => _uuid; 
-            set 
+        public string Uuid
+        {
+            get => _uuid;
+            set
             {
                 if (!string.IsNullOrEmpty(_uuid))
                     throw new ArgumentException($"Uuid already set {_uuid}");
                 _uuid = value;
-            } 
+            }
         }
         public abstract Tuple<ActionType, int> DeclareAction(IEnumerable validActions, HoleCards holeCards, object roundState);
         public abstract void ReceiveGameStartMessage(IDictionary gameInfo);
@@ -30,11 +30,11 @@ namespace NPokerEngine
         // Called from Dealer when ask message received from RoundManager
         public Tuple<ActionType, int> RespondToAsk(IDictionary message)
         {
-            var _tup_1 = this.ParseAskMessage(message);
+            var _tup_1 = ParseAskMessage(message);
             var valid_actions = _tup_1.Item1;
             var hole_card = _tup_1.Item2;
             var round_state = _tup_1.Item3;
-            return this.DeclareAction(valid_actions, hole_card, round_state);
+            return DeclareAction(valid_actions, hole_card, round_state);
         }
 
         // Called from Dealer when notification received from RoundManager
@@ -44,38 +44,38 @@ namespace NPokerEngine
             var msg_type = (string)message["message_type"];
             if (msg_type == "game_start_message")
             {
-                var info = this.ParseGameStartMessage(message);
-                this.ReceiveGameStartMessage(info);
+                var info = ParseGameStartMessage(message);
+                ReceiveGameStartMessage(info);
             }
             else if (msg_type == "round_start_message")
             {
-                var _tup_1 = this.ParseRoundStartMessage(message);
+                var _tup_1 = ParseRoundStartMessage(message);
                 var round_count = _tup_1.Item1;
                 var hole = _tup_1.Item2;
                 var seats = _tup_1.Item3;
-                this.ReceiveRoundStartMessage(round_count, hole, seats);
+                ReceiveRoundStartMessage(round_count, hole, seats);
             }
             else if (msg_type == "street_start_message")
             {
-                var _tup_2 = this.ParseStreetStartMessage(message);
+                var _tup_2 = ParseStreetStartMessage(message);
                 var street = _tup_2.Item1;
                 state = _tup_2.Item2;
-                this.ReceiveStreetStartMessage(street, state);
+                ReceiveStreetStartMessage(street, state);
             }
             else if (msg_type == "game_update_message")
             {
-                var _tup_3 = this.ParseGameUpdateMessage(message);
+                var _tup_3 = ParseGameUpdateMessage(message);
                 var new_action = _tup_3.Item1;
                 var round_state = _tup_3.Item2;
-                this.ReceiveGameUpdateMessage(new_action, round_state);
+                ReceiveGameUpdateMessage(new_action, round_state);
             }
             else if (msg_type == "round_result_message")
             {
-                var _tup_4 = this.ParseRoundResultMessage(message);
+                var _tup_4 = ParseRoundResultMessage(message);
                 var winners = _tup_4.Item1;
                 var hand_info = _tup_4.Item2;
                 state = _tup_4.Item3;
-                this.ReceiveRoundResultMessage(winners, hand_info, state);
+                ReceiveRoundResultMessage(winners, hand_info, state);
             }
         }
 
@@ -83,7 +83,7 @@ namespace NPokerEngine
         {
             var hole_card = (HoleCards)message["hole_card"];
             var valid_actions = (IEnumerable)message["valid_actions"];
-            var round_state = (object)message["round_state"];
+            var round_state = message["round_state"];
             return Tuple.Create(valid_actions, hole_card, round_state);
         }
 
@@ -104,14 +104,14 @@ namespace NPokerEngine
         private Tuple<StreetType, object> ParseStreetStartMessage(IDictionary message)
         {
             var street = (StreetType)message["street"];
-            var round_state = (object)message["round_state"];
+            var round_state = message["round_state"];
             return Tuple.Create(street, round_state);
         }
 
         private Tuple<ActionType, object> ParseGameUpdateMessage(IDictionary message)
         {
             var new_action = (ActionType)message["action"];
-            var round_state = (object)message["round_state"];
+            var round_state = message["round_state"];
             return Tuple.Create(new_action, round_state);
         }
 

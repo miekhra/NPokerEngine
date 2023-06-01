@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace NPokerEngine.Engine
+namespace NPokerEngine.Types
 {
     public class Seats
     {

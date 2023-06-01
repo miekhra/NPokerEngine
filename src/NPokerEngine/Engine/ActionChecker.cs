@@ -2,12 +2,13 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using NPokerEngine.Types;
 
 namespace NPokerEngine.Engine
 {
     public class ActionChecker
     {
-        private static List<string> __raiseActionNames = new List<string>() { "RAISE", "SMALLBLIND", "BIGBLIND" };
+        private static List<ActionType> __raiseActionTypes = new List<ActionType>() { ActionType.RAISE, ActionType.SMALL_BLIND, ActionType.BIG_BLIND };
 
         private static ActionChecker _instance;
         public static ActionChecker Instance
@@ -135,7 +136,7 @@ namespace NPokerEngine.Engine
         public float AgreeAmount(IEnumerable<Player> players)
         {
             var last_raise = this.FetchLastRaise(players);
-            return last_raise != null ? (float)last_raise["amount"] : 0;
+            return last_raise != null ? last_raise.Amount : 0;
         }
 
         private bool IsIlLegalCall(IEnumerable<Player> players, float amount)
@@ -153,7 +154,7 @@ namespace NPokerEngine.Engine
             var raise = this.FetchLastRaise(players);
             // the least min_raise allowed is BB
             //return raise != null ? (float)raise["amount"] + Math.Max((float)raise["add_amount"], (float)(sbAmount * 2)) : sbAmount * 2;
-            return raise != null ? ((float)raise["amount"] + (float)raise["add_amount"]) : (sbAmount * 2);
+            return raise != null ? (raise.Amount + raise.AddAmount) : (sbAmount * 2);
         }
 
         private bool IsShortOfMoney(Player player, float amount)
@@ -161,12 +162,12 @@ namespace NPokerEngine.Engine
             return player.Stack < amount - player.PaidSum();
         }
 
-        private Dictionary<string, object> FetchLastRaise(IEnumerable<Player> players)
+        private ActionHistoryEntry FetchLastRaise(IEnumerable<Player> players)
         {
             var raiseHistoriesQuery = players
                 .SelectMany(p => p.ActionHistories.Select(h => h))
                 .Where(h => h != null)
-                .Where(h => __raiseActionNames.Contains(h["action"]))
+                .Where(h => __raiseActionTypes.Contains(h.ActionType))
                 .ToList();
 
             if (!raiseHistoriesQuery.Any())
@@ -174,9 +175,9 @@ namespace NPokerEngine.Engine
                 return null;
             }
 
-            var maxAmount = raiseHistoriesQuery.Select(h => h["amount"]).Max();
+            var maxAmount = raiseHistoriesQuery.Select(h => h.Amount).Max();
 
-            return raiseHistoriesQuery.First(h => h["amount"] == maxAmount);
+            return raiseHistoriesQuery.First(h => h.Amount == maxAmount);
         }
     }
 }

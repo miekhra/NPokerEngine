@@ -159,16 +159,16 @@ namespace NPokerEngine.Tests.Engine
             var p3 = table.Seats.Players[2];
 
             var hsh = DataEncoder.Instance.EncodeActionHistories(table);
-            var hsty = (Dictionary<string, List<Dictionary<string, object>>>)hsh["action_histories"];
+            var hsty = (Dictionary<string, List<ActionHistoryEntry>>)hsh["action_histories"];
 
-            (string action, float amount) fetchInfo(Dictionary<string, object> info)
-                => ((string)info["action"], (float)info["amount"]);
+            (string action, float amount) fetchInfo(ActionHistoryEntry info)
+                => (info.ActionType.ToString(), info.Amount);
 
             using (new AssertionScope())
             {
                 ((IList)hsty["preflop"]).Count.Should().Be(4);
                 fetchInfo(hsty["preflop"][0]).Should().BeEquivalentTo(("RAISE", 10));
-                hsty["preflop"][1]["action"].Should().Be("FOLD");
+                hsty["preflop"][1].ActionType.Should().Be(ActionType.FOLD);
                 fetchInfo(hsty["preflop"][2]).Should().BeEquivalentTo(("RAISE", 20));
                 fetchInfo(hsty["preflop"][3]).Should().BeEquivalentTo(("CALL", 20));
                 ((IList)hsty["flop"]).Count.Should().Be(2);

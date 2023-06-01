@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 
-namespace NPokerEngine.Engine
+namespace NPokerEngine.Types
 {
     public class Card : IEquatable<Card>
     {

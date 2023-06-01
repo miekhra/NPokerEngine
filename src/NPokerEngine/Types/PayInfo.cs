@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace NPokerEngine.Engine
+namespace NPokerEngine.Types
 {
     public class PayInfo
     {

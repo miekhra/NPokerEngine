@@ -6,7 +6,7 @@ using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text;
 
-namespace NPokerEngine.Engine
+namespace NPokerEngine.Types
 {
     public class Deck
     {
@@ -16,7 +16,7 @@ namespace NPokerEngine.Engine
         private readonly bool _isCheat;
 
         public bool IsCheat => _isCheat;
-        public int Size => (_deck.Count - _popIndex);
+        public int Size => _deck.Count - _popIndex;
 
         public Deck(IEnumerable<int> cardIds = null, bool cheat = false, IEnumerable<int> cheatCardIds = null)
         {
@@ -43,8 +43,8 @@ namespace NPokerEngine.Engine
             {
                 byte[] box = new byte[1];
                 do provider.GetBytes(box);
-                while (!(box[0] < n * (Byte.MaxValue / n)));
-                int k = (box[0] % n);
+                while (!(box[0] < n * (byte.MaxValue / n)));
+                int k = box[0] % n;
                 n--;
                 var value = _deck[k];
                 _deck[k] = _deck[n];
@@ -73,7 +73,7 @@ namespace NPokerEngine.Engine
         {
             var split = serial.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
             var isCheat = Convert.ToBoolean(split[0].TrimStart('['));
-            var cardIds = split[2].TrimEnd(']').Split(new char[] { ';' }, StringSplitOptions.RemoveEmptyEntries ).Select(t => Convert.ToInt32(t));
+            var cardIds = split[2].TrimEnd(']').Split(new char[] { ';' }, StringSplitOptions.RemoveEmptyEntries).Select(t => Convert.ToInt32(t));
             var cheatCardIds = split[1].Split(new char[] { ';' }, StringSplitOptions.RemoveEmptyEntries).Select(t => Convert.ToInt32(t));
             return new Deck(cardIds, isCheat, cheatCardIds);
         }

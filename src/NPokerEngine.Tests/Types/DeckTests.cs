@@ -1,13 +1,13 @@
 ﻿using FluentAssertions;
 using FluentAssertions.Execution;
-using NPokerEngine.Engine;
+using NPokerEngine.Types;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace NPokerEngine.Tests.Engine
+namespace NPokerEngine.Tests.Types
 {
     [TestClass]
     public class DeckTests
@@ -21,14 +21,14 @@ namespace NPokerEngine.Tests.Engine
         }
 
         [TestCleanup]
-        public void Cleanup() 
+        public void Cleanup()
         {
             _deck = null;
         }
 
         [TestMethod]
-        public void DrawCardTest() 
-        { 
+        public void DrawCardTest()
+        {
             var card = _deck.DrawCard();
 
             using (new AssertionScope())
@@ -63,7 +63,7 @@ namespace NPokerEngine.Tests.Engine
         {
             _deck.Shuffle();
             _deck.DrawCards(3);
-            
+
             var serial = _deck.Serialize();
             var restoredDeck = Deck.Deserialize(serial);
 
@@ -78,7 +78,7 @@ namespace NPokerEngine.Tests.Engine
         public void CheatDrawTest()
         {
             var cardIds = new int[] { 12, 15, 17 };
-            var cheatDeck =  new Deck(cheat: true, cheatCardIds: cardIds);
+            var cheatDeck = new Deck(cheat: true, cheatCardIds: cardIds);
             cheatDeck.DrawCards(3).Should().BeEquivalentTo(cardIds.Select(Card.FromId));
         }
 

@@ -36,8 +36,8 @@ namespace NPokerEngine.Tests.Engine
             {
                 players[0].Stack.Should().Be(100 - sbAmount);
                 players[1].Stack.Should().Be(100 - sbAmount*2);
-                players[0].LastActionHistory["action"].Should().Be("SMALLBLIND");
-                players[1].LastActionHistory["action"].Should().Be("BIGBLIND");
+                players[0].LastActionHistory.ActionType.Should().Be(ActionType.SMALL_BLIND);
+                players[1].LastActionHistory.ActionType.Should().Be(ActionType.BIG_BLIND);
                 players[0].PayInfo.Amount.Should().Be(sbAmount);
                 players[1].PayInfo.Amount.Should().Be(sbAmount*2);
             }
@@ -58,9 +58,9 @@ namespace NPokerEngine.Tests.Engine
                 players[0].Stack.Should().Be(100 - sbAmount - ante);
                 players[1].Stack.Should().Be(100 - sbAmount * 2 - ante);
                 players[2].Stack.Should().Be(100 - ante);
-                players[0].ActionHistories[0]["action"].Should().Be("ANTE");
-                players[1].ActionHistories[0]["action"].Should().Be("ANTE");
-                players[2].ActionHistories[0]["action"].Should().Be("ANTE");
+                players[0].ActionHistories[0].ActionType.Should().Be(ActionType.ANTE);
+                players[1].ActionHistories[0].ActionType.Should().Be(ActionType.ANTE);
+                players[2].ActionHistories[0].ActionType.Should().Be(ActionType.ANTE);
                 players[0].PayInfo.Amount.Should().Be(sbAmount + ante);
                 players[1].PayInfo.Amount.Should().Be(sbAmount * 2 + ante);
                 players[2].PayInfo.Amount.Should().Be(ante);
@@ -131,8 +131,8 @@ namespace NPokerEngine.Tests.Engine
             using (new AssertionScope())
             {
                 state["next_player"].Should().Be(2);
-                ((Table)state["table"]).Seats.Players[0].ActionHistories[0]["action"].Should().Be("SMALLBLIND");
-                ((Table)state["table"]).Seats.Players[1].ActionHistories[0]["action"].Should().Be("BIGBLIND");
+                ((Table)state["table"]).Seats.Players[0].ActionHistories[0].ActionType.Should().Be(ActionType.SMALL_BLIND);
+                ((Table)state["table"]).Seats.Players[1].ActionHistories[0].ActionType.Should().Be(ActionType.BIG_BLIND);
             }
         }
 
@@ -168,7 +168,7 @@ namespace NPokerEngine.Tests.Engine
             using (new AssertionScope())
             {
                 state["next_player"].Should().Be(0);
-                ((Table)state["table"]).Seats.Players[2].ActionHistories[0]["action"].Should().Be("CALL");
+                ((Table)state["table"]).Seats.Players[2].ActionHistories[0].ActionType.Should().Be(ActionType.CALL);
             }
         }
 
@@ -181,7 +181,7 @@ namespace NPokerEngine.Tests.Engine
             using (new AssertionScope())
             {
                 state["next_player"].Should().Be(0);
-                ((Table)state["table"]).Seats.Players[2].ActionHistories[0]["action"].Should().Be("RAISE");
+                ((Table)state["table"]).Seats.Players[2].ActionHistories[0].ActionType.Should().Be(ActionType.RAISE);
             }
         }
 
@@ -580,7 +580,7 @@ namespace NPokerEngine.Tests.Engine
                 //((Table)state["table"]).Seats.Players.Select(p => p.Stack).Should().BeEquivalentTo(new List<float> { 85, 75, 95 });
                 (called_state, _) = RoundManager.Instance.ApplyAction(state, "call", 20);
 
-                ((Table)called_state["table"]).Seats.Players[2].ActionHistories.Last()["pais"].Should().Be(20);
+                ((Table)called_state["table"]).Seats.Players[2].ActionHistories.Last().Paid.Should().Be(20);
             }
         }
         //  def test_add_amount_calculationl_when_raise_on_ante(self) :
