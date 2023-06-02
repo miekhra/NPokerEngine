@@ -135,11 +135,11 @@ namespace NPokerEngine.Tests.Engine
             return player;
         }
 
-        private void SidePotCheck(Dictionary<string, Player> players, Dictionary<string, object> pot, float amount, string[] eligibles)
+        private void SidePotCheck(Dictionary<string, Player> players, PotInfo pot, float amount, string[] eligibles)
         {
-            amount.Should().Be(Convert.ToSingle(pot["amount"]));
-            eligibles.Length.Should().Be(((ICollection)pot["eligibles"]).Count);
-            eligibles.Should().BeEquivalentTo(((ICollection<Player>)pot["eligibles"]).Select(t => t.Name));
+            amount.Should().Be(Convert.ToSingle(pot.Amount));
+            eligibles.Length.Should().Be(((ICollection)pot.Eligibles).Count);
+            eligibles.Should().BeEquivalentTo(((ICollection<Player>)pot.Eligibles).Select(t => t.Name));
         }
     }
 }

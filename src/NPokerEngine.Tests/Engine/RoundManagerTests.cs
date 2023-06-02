@@ -63,7 +63,7 @@ namespace NPokerEngine.Tests.Engine
                 players[0].PayInfo.Amount.Should().Be(sbAmount + ante);
                 players[1].PayInfo.Amount.Should().Be(sbAmount * 2 + ante);
                 players[2].PayInfo.Amount.Should().Be(ante);
-                GameEvaluator.Instance.CreatePot(players)[0]["amount"].Should().Be(sbAmount + sbAmount * 2 + ante * 3);
+                GameEvaluator.Instance.CreatePot(players)[0].Amount.Should().Be(sbAmount + sbAmount * 2 + ante * 3);
             }
         }
 
@@ -81,7 +81,7 @@ namespace NPokerEngine.Tests.Engine
 
             using (new AssertionScope())
             {
-                GameEvaluator.Instance.CreatePot(players)[0]["amount"].Should().Be(sbAmount + sbAmount * 2 + ante * 2);
+                GameEvaluator.Instance.CreatePot(players)[0].Amount.Should().Be(sbAmount + sbAmount * 2 + ante * 2);
             }
         }
 
@@ -563,7 +563,7 @@ namespace NPokerEngine.Tests.Engine
         {
             var table = this.SetupTable();
             Func<GameState, object> potAmount = state 
-                => ((Dictionary<string, object>)(GameEvaluator.Instance.CreatePot(state.Table.Seats.Players)[0]))["amount"];
+                => GameEvaluator.Instance.CreatePot(state.Table.Seats.Players)[0].Amount;
             
             var (state, _) = RoundManager.Instance.StartNewRound(1, 10, 5, table);
 

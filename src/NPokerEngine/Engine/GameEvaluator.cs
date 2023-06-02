@@ -34,7 +34,7 @@ namespace NPokerEngine.Engine
             return (winners, hand_info, prize_map);
         }
 
-        public List<Dictionary<string, object>> CreatePot(IEnumerable<Player> players)
+        public List<PotInfo> CreatePot(IEnumerable<Player> players)
         {
             var sidePots = this.GetSidePots(players);
             var mainPot = this.GetMainPot(players, sidePots);
@@ -48,8 +48,8 @@ namespace NPokerEngine.Engine
             var pots = this.CreatePot(players);
             foreach (var pot in pots)
             {
-                var winners = this.FindWinnersFrom((IEnumerable<Player>)pot["eligibles"], community);
-                var prize = Convert.ToSingle(Convert.ToSingle(pot["amount"]) / winners.Count);
+                var winners = this.FindWinnersFrom((IEnumerable<Player>)pot.Eligibles, community);
+                var prize = Convert.ToSingle(Convert.ToSingle(pot.Amount) / winners.Count);
                 foreach (var winner in winners)
                 {
                     prize_map[Array.IndexOf(players.ToArray(), winner)] += prize;
@@ -91,34 +91,18 @@ namespace NPokerEngine.Engine
                 handInfoMap[player.Uuid] = (_handEvaluator ?? HandEvaluator.Instance).GenHandRankInfo(player.HoleCards, community);
 
             return handInfoMap;
-
-            //Func<Player, Dictionary<string, HandInfo>> genHandInfo = player => new Dictionary<string, HandInfo> 
-            //{
-            //    {
-            //        player.Uuid,
-            //        (_handEvaluator ?? HandEvaluator.Instance).GenHandRankInfo(player.HoleCards, community)
-            //    }
-            //};
-            //return activePlayers.Count == 1 ? new List<Dictionary<string, HandInfo>>() : (from player in activePlayers
-            //                                                                            select genHandInfo(player)).ToList();
         }
 
-        private Dictionary<string, object> GetMainPot(IEnumerable<Player> players, IEnumerable<Dictionary<string, object>> sidepots)
+        private PotInfo GetMainPot(IEnumerable<Player> players, IEnumerable<PotInfo> sidepots)
         {
             var maxPay = (from pay in this.GetPayInfo(players)
                                select pay.Amount).Max();
-            return new Dictionary<string, object> 
+            return new PotInfo
             {
-                {
-                    "amount",
-                    this.GetPlayersPaySum(players) - this.GetSidepotsSum(sidepots)
-                },
-                {
-                    "eligibles",
-                    (from player in players
-                        where player.PayInfo.Amount == maxPay
-                        select player).ToList()
-                }
+                Amount = this.GetPlayersPaySum(players) - this.GetSidepotsSum(sidepots),
+                Eligibles = (from player in players
+                                 where player.PayInfo.Amount == maxPay
+                                 select player).ToList()
             };
         }
 
@@ -128,12 +112,12 @@ namespace NPokerEngine.Engine
                     select pay.Amount).ToList().Sum();
         }
 
-        private List<Dictionary<string, object>> GetSidePots(IEnumerable<Player> players)
+        private List<PotInfo> GetSidePots(IEnumerable<Player> players)
         {
             var payAmounts = (from payinfo in this.FetchAllInPayInfo(players)
                                select payinfo.Amount).ToList();
 
-            var sidePots = new List<Dictionary<string, object>>();
+            var sidePots = new List<PotInfo>();
             foreach (var payAmount in payAmounts)
             {
                 sidePots.Add(this.CreateSidepot(players, sidePots, (int)payAmount));
@@ -142,27 +126,32 @@ namespace NPokerEngine.Engine
             return sidePots;
         }
 
-        private Dictionary<string, object> CreateSidepot(IEnumerable<Player> players, IEnumerable<Dictionary<string, object>> smallerSidePots, int allinAmount)
+        private PotInfo CreateSidepot(IEnumerable<Player> players, IEnumerable<PotInfo> smallerSidePots, int allinAmount)
         {
-            return new Dictionary<string, object> {
-                    {
-                        "amount",
-                        this.CalcSidepotSize(players, smallerSidePots, allinAmount)},
-                    {
-                        "eligibles",
-                        this.SelectEligibles(players, allinAmount)}};
+            return new PotInfo
+            {
+                Amount = this.CalcSidepotSize(players, smallerSidePots, allinAmount),
+                Eligibles = this.SelectEligibles(players, allinAmount)
+            };
+            //return new Dictionary<string, object> {
+            //        {
+            //            "amount",
+            //            this.CalcSidepotSize(players, smallerSidePots, allinAmount)},
+            //        {
+            //            "eligibles",
+            //            this.SelectEligibles(players, allinAmount)}};
         }
 
-        private int CalcSidepotSize(IEnumerable<Player> players, IEnumerable<Dictionary<string, object>> smallerSidePots, int allinAmount)
+        private float CalcSidepotSize(IEnumerable<Player> players, IEnumerable<PotInfo> smallerSidePots, int allinAmount)
         {
-            Func<int, Player, int> addChipForPot = (pot, player) => pot + Math.Min(allinAmount, (int)player.PayInfo.Amount);
+            Func<float, Player, float> addChipForPot = (pot, player) => pot + Math.Min(allinAmount, player.PayInfo.Amount);
             var targetPotSize = players.Aggregate(0, addChipForPot);
             return targetPotSize - this.GetSidepotsSum(smallerSidePots);
         }
 
-        private int GetSidepotsSum(IEnumerable<Dictionary<string, object>> sidepots)
+        private float GetSidepotsSum(IEnumerable<PotInfo> sidepots)
         {
-            return sidepots.Aggregate(0, (sum_, sidepot) => sum_ + (int)sidepot["amount"]);
+            return sidepots.Aggregate(0f, (sum_, sidepot) => sum_ + sidepot.Amount);
         }
 
         private List<Player> SelectEligibles(IEnumerable<Player> players, int allinAmount)

@@ -64,17 +64,20 @@ namespace NPokerEngine.Engine
         public virtual Dictionary<string, object> EncodePot(IEnumerable<Player> players)
         {
             var pots = GameEvaluator.Instance.CreatePot(players);
-            var main = new Dictionary<string, object> {
+            var main = new Dictionary<string, object> 
+            {
+                {
+                    "amount",
+                    pots[0].Amount
+                }
+            };
+            Func<PotInfo, Dictionary<string, object>> genHsh = sidepot => new Dictionary<string, object> {
                     {
                         "amount",
-                        pots[0]["amount"]}};
-            Func<Dictionary<string, object>, Dictionary<string, object>> genHsh = sidepot => new Dictionary<string, object> {
-                    {
-                        "amount",
-                        sidepot["amount"]},
+                        sidepot.Amount},
                     {
                         "eligibles",
-                        (from p in ((IEnumerable<Player>)sidepot["eligibles"])
+                        (from p in ((IEnumerable<Player>)sidepot.Eligibles)
                             select p.Uuid).ToList()
                     }};
 
