@@ -1,6 +1,5 @@
 ﻿using FluentAssertions;
 using NPokerEngine.Engine;
-using NPokerEngine.Utils;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -58,10 +57,10 @@ namespace NPokerEngine.Tests.Types
         public void SerializationTest()
         {
             SitdownPlayers();
-            var clone = (Seats)ObjectUtils.DeepCopyByReflection(_seats);
+            var clone = (Seats)_seats.Clone();
             clone.Players
                 .Select((p, ix) => new { ix, p })
-                .All(obj => ReferenceEquals(ObjectUtils.DeepCopyByReflection(obj.p), _seats.Players[obj.ix]))
+                .All(obj => ReferenceEquals(obj.p.Clone(), _seats.Players[obj.ix]))
                 .Should().BeFalse();
         }
 

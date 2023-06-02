@@ -4,7 +4,7 @@ using System.Text;
 
 namespace NPokerEngine.Types
 {
-    public class PayInfo
+    public class PayInfo : ICloneable
     {
         internal float _amount;
         internal PayInfoStatus _status;
@@ -31,6 +31,11 @@ namespace NPokerEngine.Types
         public void UpdateToAllin()
         {
             this._status = PayInfoStatus.ALLIN;
+        }
+
+        public object Clone()
+        {
+            return new PayInfo(_amount, _status);
         }
     }
 }

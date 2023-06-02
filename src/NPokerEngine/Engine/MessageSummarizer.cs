@@ -1,5 +1,4 @@
-﻿using NPokerEngine.Utils;
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -116,7 +115,7 @@ namespace NPokerEngine.Engine
             {
                 stack.Add((((IDictionary)item)["name"]).ToString(), (int)((IDictionary)item)["stack"]);
             }
-            return $"\"{string.Format(", ", winners)}\" won the round %d (stack = {DictionaryUtils.PrintForMessageSummarizer(stack)})";
+            return $"\"{string.Format(", ", winners)}\" won the round %d (stack = {PrintForMessageSummarizer(stack)})";
         }
 
         public string SummarizeGameResult(IDictionary message)
@@ -127,8 +126,11 @@ namespace NPokerEngine.Engine
             {
                 stack.Add((((IDictionary)item)["name"]).ToString(), (int)((IDictionary)item)["stack"]);
             }
-            return $"Game finished. (stack = {DictionaryUtils.PrintForMessageSummarizer(stack)})";
+            return $"Game finished. (stack = {PrintForMessageSummarizer(stack)})";
         }
+
+        private static string PrintForMessageSummarizer(IDictionary source)
+            => $"{{{string.Join(", ", source.Keys.Cast<object>().ToList().Select(key => $"'{key}': {source[key]}"))}}}";
 
         public string SummairzeBlindLevelUpdate(
             object round_count,

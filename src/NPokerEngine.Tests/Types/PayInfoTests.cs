@@ -1,7 +1,6 @@
 ﻿using FluentAssertions;
 using FluentAssertions.Execution;
 using NPokerEngine.Engine;
-using NPokerEngine.Utils;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -59,7 +58,7 @@ namespace NPokerEngine.Tests.Types
         {
             _payInfo.UpdateByPay(100);
             _payInfo.UpdateToAllin();
-            var copy = (PayInfo)ObjectUtils.DeepCopyByReflection(_payInfo);
+            var copy = (PayInfo)_payInfo.Clone();
             using (new AssertionScope())
             {
                 object.ReferenceEquals(copy, _payInfo).Should().BeFalse();

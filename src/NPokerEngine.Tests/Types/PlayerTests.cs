@@ -1,7 +1,6 @@
 ﻿using FluentAssertions;
 using FluentAssertions.Execution;
 using NPokerEngine.Engine;
-using NPokerEngine.Utils;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -315,7 +314,7 @@ namespace NPokerEngine.Tests.Types
         {
             var player = SetupPlayerForSerialization();
 
-            var clone = (Player)ObjectUtils.DeepCopyByReflection(player);
+            var clone = (Player)player.Clone();
 
             using (new AssertionScope())
             {

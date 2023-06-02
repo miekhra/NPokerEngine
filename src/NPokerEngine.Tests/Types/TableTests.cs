@@ -1,6 +1,5 @@
 ﻿using FluentAssertions;
 using FluentAssertions.Execution;
-using NPokerEngine.Utils;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -130,7 +129,7 @@ namespace NPokerEngine.Tests.Types
             _table.ShiftDealerButton();
             _table.SetBlindPositions(1, 2);
 
-            var restoredTable = (Table)ObjectUtils.DeepCopyByReflection(_table);
+            var restoredTable = (Table)_table.Clone();
             using (new AssertionScope())
             {
                 restoredTable.DealerButton.Should().Be(_table.DealerButton);
