@@ -184,11 +184,11 @@ namespace NPokerEngine.Tests.Engine
         private List<Player> SetupPlayers()
         {
             var hole = new Card[] { Card.FromId(1), Card.FromId(2) };
-            var players = Enumerable.Range(0, 3).Select(ix => SetupPlayer()).ToList();
+            var players = Enumerable.Range(0, 3).Select(ix => SetupPlayer(ix)).ToList();
             players[1].AddHoleCards(hole);
             return players;
         }
 
-        private Player SetupPlayer() => new Player("uuid", 100, "hoge");
+        private Player SetupPlayer(int? ix = null) => new Player($"uuid{ix}", 100, "hoge");
     }
 }

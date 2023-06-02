@@ -214,9 +214,9 @@ namespace NPokerEngine.Tests.Engine
             }
         }
 
-        private Player SetupPlayer()
+        private Player SetupPlayer(int? idx = null)
         {
-            var player = SetupPlayerWithPayInfo(0, "hoge", 50, PayInfo.FOLDED);
+            var player = SetupPlayerWithPayInfo(idx ?? 0, "hoge", 50, PayInfo.FOLDED);
             player.AddHoleCards(Card.FromId(1), Card.FromId(2));
             player.AddActionHistory(ActionType.CALL, 50);
             return player;
@@ -243,7 +243,7 @@ namespace NPokerEngine.Tests.Engine
         private Seats SetupSeats()
         {
             var seats = new Seats();
-            Enumerable.Range(0, 3).ToList().ForEach(ix => seats.Sitdown(SetupPlayer()));
+            Enumerable.Range(0, 3).ToList().ForEach(ix => seats.Sitdown(SetupPlayer(ix)));
             return seats;
         }
 

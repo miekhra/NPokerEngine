@@ -35,7 +35,7 @@ namespace NPokerEngine.Tests.Engine
         [TestMethod]
         public void JudgeWithoutAllinTest()
         {
-            var players = Enumerable.Range(0,3).Select(x => CreatePlayerWithPayInfo(string.Empty, 5, PayInfo.PAY_TILL_END)).ToList();
+            var players = Enumerable.Range(0,3).Select(ix => CreatePlayerWithPayInfo(ix.ToString(), 5, PayInfo.PAY_TILL_END)).ToList();
             var table = SetupTable(players);
 
             var handEvalMock = new Mock<IHandEvaluator>();
@@ -55,7 +55,7 @@ namespace NPokerEngine.Tests.Engine
         [TestMethod]
         public void JudjeWithoutAllinButWinnerFoldedTest()
         {
-            var players = Enumerable.Range(0, 3).Select(x => CreatePlayerWithPayInfo(string.Empty, 5, PayInfo.PAY_TILL_END)).ToList();
+            var players = Enumerable.Range(0, 3).Select(ix => CreatePlayerWithPayInfo(ix.ToString(), 5, PayInfo.PAY_TILL_END)).ToList();
             players[1].PayInfo.UpdateToFold();
             var table = SetupTable(players);
 
@@ -68,8 +68,10 @@ namespace NPokerEngine.Tests.Engine
             using (new AssertionScope())
             {
                 judgeResult.winners.Count.Should().Be(2);
-                ((IDictionary)(((IDictionary)(judgeResult.handInfo[0]["hand"]))["hand"]))["strength"].Should().Be("HIGHCARD");
-                ((IDictionary)(((IDictionary)(judgeResult.handInfo[1]["hand"]))["hand"]))["strength"].Should().Be("HIGHCARD");
+                judgeResult.handInfoMap.ElementAt(0).Value.HandStrength.Should().Be("HIGHCARD");
+                judgeResult.handInfoMap.ElementAt(1).Value.HandStrength.Should().Be("HIGHCARD");
+                //((IDictionary)(((IDictionary)(judgeResult.handInfo[0]["hand"]))["hand"]))["strength"].Should().Be("HIGHCARD");
+                //((IDictionary)(((IDictionary)(judgeResult.handInfo[1]["hand"]))["hand"]))["strength"].Should().Be("HIGHCARD");
                 judgeResult.prizeMap[0].Should().Be(7.5f);
                 judgeResult.prizeMap[1].Should().Be(0);
                 judgeResult.prizeMap[2].Should().Be(7.5f);
@@ -91,9 +93,12 @@ namespace NPokerEngine.Tests.Engine
 
             using (new AssertionScope())
             {
-                ((IDictionary)(((IDictionary)(((IDictionary)(judgeResult.handInfo[0]))["hand"]))["hole"]))["low"].Should().Be(0);
-                ((IDictionary)(((IDictionary)(((IDictionary)(judgeResult.handInfo[1]))["hand"]))["hole"]))["low"].Should().Be(2);
-                ((IDictionary)(((IDictionary)(((IDictionary)(judgeResult.handInfo[2]))["hand"]))["hole"]))["low"].Should().Be(1);
+                judgeResult.handInfoMap.ElementAt(0).Value.HoleLow.Should().Be(0);
+                judgeResult.handInfoMap.ElementAt(1).Value.HoleLow.Should().Be(2);
+                judgeResult.handInfoMap.ElementAt(2).Value.HoleLow.Should().Be(1);
+                //((IDictionary)(((IDictionary)(((IDictionary)(judgeResult.handInfo[0]))["hand"]))["hole"]))["low"].Should().Be(0);
+                //((IDictionary)(((IDictionary)(((IDictionary)(judgeResult.handInfo[1]))["hand"]))["hole"]))["low"].Should().Be(2);
+                //((IDictionary)(((IDictionary)(((IDictionary)(judgeResult.handInfo[2]))["hand"]))["hole"]))["low"].Should().Be(1);
                 judgeResult.prizeMap[0].Should().Be(20);
                 judgeResult.prizeMap[1].Should().Be(60);
                 judgeResult.prizeMap[2].Should().Be(20);
@@ -115,9 +120,12 @@ namespace NPokerEngine.Tests.Engine
 
             using (new AssertionScope())
             {
-                ((IDictionary)(((IDictionary)(((IDictionary)(judgeResult.handInfo[0]))["hand"]))["hole"]))["low"].Should().Be(1);
-                ((IDictionary)(((IDictionary)(((IDictionary)(judgeResult.handInfo[1]))["hand"]))["hole"]))["low"].Should().Be(2);
-                ((IDictionary)(((IDictionary)(((IDictionary)(judgeResult.handInfo[2]))["hand"]))["hole"]))["low"].Should().Be(0);
+                judgeResult.handInfoMap.ElementAt(0).Value.HoleLow.Should().Be(1);
+                judgeResult.handInfoMap.ElementAt(1).Value.HoleLow.Should().Be(2);
+                judgeResult.handInfoMap.ElementAt(2).Value.HoleLow.Should().Be(0);
+                //((IDictionary)(((IDictionary)(((IDictionary)(judgeResult.handInfo[0]))["hand"]))["hole"]))["low"].Should().Be(1);
+                //((IDictionary)(((IDictionary)(((IDictionary)(judgeResult.handInfo[1]))["hand"]))["hole"]))["low"].Should().Be(2);
+                //((IDictionary)(((IDictionary)(((IDictionary)(judgeResult.handInfo[2]))["hand"]))["hole"]))["low"].Should().Be(0);
                 judgeResult.prizeMap[0].Should().Be(40);
                 judgeResult.prizeMap[1].Should().Be(60);
                 judgeResult.prizeMap[2].Should().Be(0);
@@ -138,9 +146,12 @@ namespace NPokerEngine.Tests.Engine
 
             using (new AssertionScope())
             {
-                ((IDictionary)(((IDictionary)(((IDictionary)(judgeResult.handInfo[0]))["hand"]))["hole"]))["low"].Should().Be(2);
-                ((IDictionary)(((IDictionary)(((IDictionary)(judgeResult.handInfo[1]))["hand"]))["hole"]))["low"].Should().Be(1);
-                ((IDictionary)(((IDictionary)(((IDictionary)(judgeResult.handInfo[2]))["hand"]))["hole"]))["low"].Should().Be(0);
+                judgeResult.handInfoMap.ElementAt(0).Value.HoleLow.Should().Be(2);
+                judgeResult.handInfoMap.ElementAt(1).Value.HoleLow.Should().Be(1);
+                judgeResult.handInfoMap.ElementAt(2).Value.HoleLow.Should().Be(0);
+                //((IDictionary)(((IDictionary)(((IDictionary)(judgeResult.handInfo[0]))["hand"]))["hole"]))["low"].Should().Be(2);
+                //((IDictionary)(((IDictionary)(((IDictionary)(judgeResult.handInfo[1]))["hand"]))["hole"]))["low"].Should().Be(1);
+                //((IDictionary)(((IDictionary)(((IDictionary)(judgeResult.handInfo[2]))["hand"]))["hole"]))["low"].Should().Be(0);
                 judgeResult.prizeMap[0].Should().Be(100);
                 judgeResult.prizeMap[1].Should().Be(0);
                 judgeResult.prizeMap[2].Should().Be(0);
@@ -210,7 +221,7 @@ namespace NPokerEngine.Tests.Engine
 
         private Player CreatePlayerWithPayInfo(string name, float amount, int status)
         {
-            var player = new Player("uuid", 100, name);
+            var player = new Player($"uuid{name}", 100, name);
             player.PayInfo._amount = amount;
             player.PayInfo._status = status;
             return player;

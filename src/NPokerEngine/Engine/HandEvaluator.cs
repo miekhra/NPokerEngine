@@ -51,7 +51,7 @@ namespace NPokerEngine.Engine
         }
 
         internal Func<IEnumerable<Card>, IEnumerable<Card>, int> _evalFunc = null;
-        public Dictionary<string, object> GenHandRankInfo(IEnumerable<Card> hole, IEnumerable<Card> community)
+        public HandRankInfo GenHandRankInfo(IEnumerable<Card> hole, IEnumerable<Card> community)
         {
             var hand = _evalFunc == null ? this.EvalHand(hole, community) : _evalFunc(hole, community);
             var row_strength = this.MaskHandStrength(hand);
@@ -60,28 +60,36 @@ namespace NPokerEngine.Engine
             var hand_low = this.MaskHandLowRank(hand);
             var hole_high = this.MaskHoleHighRank(hand);
             var hole_low = this.MaskHoleLowRank(hand);
-            return new Dictionary<string, object> {
-                    {
-                        "hand",
-                        new Dictionary<object, object> {
-                            {
-                                "strength",
-                                strength},
-                            {
-                                "high",
-                                hand_high},
-                            {
-                                "low",
-                                hand_low}}},
-                    {
-                        "hole",
-                        new Dictionary<object, object> {
-                            {
-                                "high",
-                                hole_high},
-                            {
-                                "low",
-                                hole_low}}}};
+            return new HandRankInfo
+            {
+                HandStrength = strength,
+                HandHigh = hand_high,
+                HandLow = hand_low,
+                HoleHigh = hole_high,
+                HoleLow = hole_low
+            };
+            //return new Dictionary<string, object> {
+            //        {
+            //            "hand",
+            //            new Dictionary<object, object> {
+            //                {
+            //                    "strength",
+            //                    strength},
+            //                {
+            //                    "high",
+            //                    hand_high},
+            //                {
+            //                    "low",
+            //                    hand_low}}},
+            //        {
+            //            "hole",
+            //            new Dictionary<object, object> {
+            //                {
+            //                    "high",
+            //                    hole_high},
+            //                {
+            //                    "low",
+            //                    hole_low}}}};
         }
 
         public int EvalHand(IEnumerable<Card> hole, IEnumerable<Card> community)

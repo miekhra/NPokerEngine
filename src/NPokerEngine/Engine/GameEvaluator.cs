@@ -26,7 +26,7 @@ namespace NPokerEngine.Engine
             _handEvaluator = handEvaluator;
         }
 
-		public (List<Player> winners, List<Dictionary<string, object>> handInfo, Dictionary<int, float> prizeMap) Judge(Table table)
+		public (List<Player> winners, Dictionary<string, HandRankInfo> handInfoMap, Dictionary<int, float> prizeMap) Judge(Table table)
         {
             var winners = this.FindWinnersFrom(table.Seats.Players, table.CommunityCards);
             var hand_info = this.GenHandInfoIfNeeded(table.Seats.Players, table.CommunityCards);
@@ -77,24 +77,30 @@ namespace NPokerEngine.Engine
             return winners;
         }
 
-        private List<Dictionary<string, object>> GenHandInfoIfNeeded(IEnumerable<Player> players, IEnumerable<Card> community)
+        private Dictionary<string, HandRankInfo> GenHandInfoIfNeeded(IEnumerable<Player> players, IEnumerable<Card> community)
         {
             var activePlayers = (from player in players
                                   where player.IsActive()
                                   select player).ToList();
 
-            Func<Player, Dictionary<string, object>> genHandInfo = player => new Dictionary<string, object> 
-            {
-                {
-                    "uuid",
-                    player.Uuid},
-                {
-                    "hand",
-                    (_handEvaluator ?? HandEvaluator.Instance).GenHandRankInfo(player.HoleCards, community)
-                }
-            };
-            return activePlayers.Count == 1 ? new List<Dictionary<string, object>>() : (from player in activePlayers
-                                                                                        select genHandInfo(player)).ToList();
+            var handInfoMap = new Dictionary<string, HandRankInfo>();
+
+            if (activePlayers.Count == 1) return handInfoMap;
+
+            foreach (var player in activePlayers)
+                handInfoMap[player.Uuid] = (_handEvaluator ?? HandEvaluator.Instance).GenHandRankInfo(player.HoleCards, community);
+
+            return handInfoMap;
+
+            //Func<Player, Dictionary<string, HandInfo>> genHandInfo = player => new Dictionary<string, HandInfo> 
+            //{
+            //    {
+            //        player.Uuid,
+            //        (_handEvaluator ?? HandEvaluator.Instance).GenHandRankInfo(player.HoleCards, community)
+            //    }
+            //};
+            //return activePlayers.Count == 1 ? new List<Dictionary<string, HandInfo>>() : (from player in activePlayers
+            //                                                                            select genHandInfo(player)).ToList();
         }
 
         private Dictionary<string, object> GetMainPot(IEnumerable<Player> players, IEnumerable<Dictionary<string, object>> sidepots)

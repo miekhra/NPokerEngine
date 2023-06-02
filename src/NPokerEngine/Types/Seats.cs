@@ -18,7 +18,11 @@ namespace NPokerEngine.Types
         }
 
         public void Sitdown(Player player)
-            => _players.Add(player);
+        {
+            if (_players.Any(p => p.Uuid == player.Uuid))
+                throw new ArgumentException($"Dublicate player uuid {player.Uuid}");
+            _players.Add(player);
+        }
 
         public int ActivePlayersCount()
             => _players.Where(p => p.IsActive()).Count();
