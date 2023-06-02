@@ -54,7 +54,7 @@ namespace NPokerEngine.Tests.Engine
         {
             var state = SetupState();
 
-            var message = MessageBuilder.Instance.BuildStreetStartMessage(state);
+            var message = MessageBuilder.Instance.BuildStreetStartMessage(state.ToDictionary());
             var msg = (IDictionary)message["message"];
 
             using (new AssertionScope())
@@ -62,7 +62,7 @@ namespace NPokerEngine.Tests.Engine
                 message["type"].Should().Be("notification");
                 msg["message_type"].Should().Be(MessageBuilder.STREET_START_MESSAGE);
                 msg["street"].Should().Be("flop");
-                msg["round_state"].Should().BeEquivalentTo(DataEncoder.Instance.EncodeRoundState(state));
+                msg["round_state"].Should().BeEquivalentTo(DataEncoder.Instance.EncodeRoundState(state.ToDictionary()));
             }
         }
 
@@ -70,7 +70,6 @@ namespace NPokerEngine.Tests.Engine
         public void AskStartMessageTest()
         {
             var state = SetupState();
-            var table = (Table)state["table"];
 
             var message = MessageBuilder.Instance.BuildAskMessage(1, state);
             var msg = (IDictionary)message["message"];
@@ -81,8 +80,8 @@ namespace NPokerEngine.Tests.Engine
                 msg["message_type"].Should().Be(MessageBuilder.ASK_MESSAGE);
                 msg["hole_card"].Should().BeEquivalentTo(new List<string> { "CA", "C2" });
                 ((ICollection)msg["valid_actions"]).Count.Should().Be(3);
-                msg["round_state"].Should().BeEquivalentTo(DataEncoder.Instance.EncodeRoundState(state));
-                msg["action_histories"].Should().BeEquivalentTo(DataEncoder.Instance.EncodeActionHistories(table));
+                msg["round_state"].Should().BeEquivalentTo(DataEncoder.Instance.EncodeRoundState(state.ToDictionary()));
+                msg["action_histories"].Should().BeEquivalentTo(DataEncoder.Instance.EncodeActionHistories(state.Table));
             }
         }
 
@@ -90,10 +89,9 @@ namespace NPokerEngine.Tests.Engine
         public void GameUpdateMessageTest()
         {
             var state = SetupState();
-            var table = (Table)state["table"];
-            var player = table.Seats.Players[1];
+            var player = state.Table.Seats.Players[1];
 
-            var message = MessageBuilder.Instance.BuildGameUpdateMessage(1, "call", 10, state);
+            var message = MessageBuilder.Instance.BuildGameUpdateMessage(1, "call", 10, state.ToDictionary());
             var msg = (IDictionary)message["message"];
 
             using (new AssertionScope())
@@ -101,8 +99,8 @@ namespace NPokerEngine.Tests.Engine
                 message["type"].Should().Be("notification");
                 msg["message_type"].Should().Be(MessageBuilder.GAME_UPDATE_MESSAGE);
                 msg["action"].Should().BeEquivalentTo(DataEncoder.Instance.EncodeAction(player, "call", 10));
-                msg["round_state"].Should().BeEquivalentTo(DataEncoder.Instance.EncodeRoundState(state));
-                msg["action_histories"].Should().BeEquivalentTo(DataEncoder.Instance.EncodeActionHistories(table));
+                msg["round_state"].Should().BeEquivalentTo(DataEncoder.Instance.EncodeRoundState(state.ToDictionary()));
+                msg["action_histories"].Should().BeEquivalentTo(DataEncoder.Instance.EncodeActionHistories(state.Table));
             }
         }
 
@@ -110,10 +108,10 @@ namespace NPokerEngine.Tests.Engine
         public void RoundResultMessageTest()
         {
             var state = SetupState();
-            var winners = ((Table)state["table"]).Seats.Players.Skip(1).Take(1);
+            var winners = state.Table.Seats.Players.Skip(1).Take(1);
             var handInfo = new string[] { "dummy", "info" };
 
-            var message = MessageBuilder.Instance.BuildRoundResultMessage(7, winners, handInfo, state);
+            var message = MessageBuilder.Instance.BuildRoundResultMessage(7, winners, handInfo, state.ToDictionary());
             var msg = (IDictionary)message["message"];
 
             using (new AssertionScope())
@@ -123,7 +121,7 @@ namespace NPokerEngine.Tests.Engine
                 msg["round_count"].Should().Be(7);
                 msg["hand_info"].Should().BeEquivalentTo(handInfo);
                 msg["winners"].Should().BeEquivalentTo(DataEncoder.Instance.EncodeWinners(winners)["winners"]);
-                msg["round_state"].Should().BeEquivalentTo(DataEncoder.Instance.EncodeRoundState(state));
+                msg["round_state"].Should().BeEquivalentTo(DataEncoder.Instance.EncodeRoundState(state.ToDictionary()));
             }
         }
 
@@ -145,14 +143,14 @@ namespace NPokerEngine.Tests.Engine
             }
         }
 
-        private Dictionary<string, object> SetupState()
-            => new Dictionary<string, object>
+        private GameState SetupState()
+            => new GameState
             {
-                { "street", 1 },
-                { "next_player", 2},
-                { "round_count", 3 },
-                { "small_blind_amount", 4 },
-                { "table", SetupTable() }
+                Street = StreetType.FLOP,
+                NextPlayerIx = 2,
+                RoundCount = 3,
+                SmallBlindAmount = 4,
+                Table = SetupTable()
             };
 
         private Table SetupTable()

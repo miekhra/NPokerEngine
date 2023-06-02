@@ -118,7 +118,7 @@ namespace NPokerEngine.Engine
                 state.NextPlayerIx = table.NextAskWaitingPlayerPosition(state.NextPlayerIx);
                 var next_player_pos = state.NextPlayerIx;
                 var next_player = table.Seats.Players[next_player_pos];
-                var ask_message = (next_player.Uuid, (_messageBuilder ?? MessageBuilder.Instance).BuildAskMessage(next_player_pos, state.ToDictionary()));
+                var ask_message = (next_player.Uuid, (_messageBuilder ?? MessageBuilder.Instance).BuildAskMessage(next_player_pos, state));
                 if (_messageBuilder != null)
                 {
                     Tuple<string, object> askMessage2 = default;
@@ -331,11 +331,11 @@ namespace NPokerEngine.Engine
                 var next_player_pos = state.NextPlayerIx;
                 var next_player = state.Table.Seats.Players[next_player_pos];
                 var ask_message = new List<object> {
-                        (next_player.Uuid, (_messageBuilder ?? MessageBuilder.Instance).BuildAskMessage(next_player_pos,state.ToDictionary()))
+                        (next_player.Uuid, (_messageBuilder ?? MessageBuilder.Instance).BuildAskMessage(next_player_pos,state))
                     };
                 if (_messageBuilder != null)
                 {
-                    street_start_msg[next_player.Uuid] = (_messageBuilder ?? MessageBuilder.Instance).BuildAskMessage(next_player_pos, state.ToDictionary()).Values.First();
+                    street_start_msg[next_player.Uuid] = (_messageBuilder ?? MessageBuilder.Instance).BuildAskMessage(next_player_pos, state).Values.First();
                     return Tuple.Create(state, (object)street_start_msg);
                 }
                 else

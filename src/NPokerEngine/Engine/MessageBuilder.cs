@@ -77,12 +77,12 @@ namespace NPokerEngine.Engine
             return this.BuildNotificationMessage(message);
         }
 
-        public Dictionary<string, object> BuildAskMessage(int playerPos, Dictionary<string, object> state)
+        public Dictionary<string, object> BuildAskMessage(int playerPos, GameState state)
         {
-            var players = ((Table)state["table"]).Seats.Players;
+            var players = state.Table.Seats.Players;
             var player = players[playerPos];
             var holeCards = DataEncoder.Instance.EncodePlayer(player, holecards: true)["hole_card"];
-            var validActions = ActionChecker.Instance.LegalActions(players, playerPos, Convert.ToInt32(state["small_blind_amount"]));
+            var validActions = ActionChecker.Instance.LegalActions(players, playerPos, Convert.ToInt32(state.SmallBlindAmount));
             var message = new Dictionary<object, object> {
                     {
                         "message_type",
@@ -95,10 +95,10 @@ namespace NPokerEngine.Engine
                         validActions},
                     {
                         "round_state",
-                        DataEncoder.Instance.EncodeRoundState(state)},
+                        DataEncoder.Instance.EncodeRoundState(state.ToDictionary())},
                     {
                         "action_histories",
-                        DataEncoder.Instance.EncodeActionHistories((Table)state["table"])}};
+                        DataEncoder.Instance.EncodeActionHistories(state.Table)}};
             return this.BuildAskMessage(message);
         }
 

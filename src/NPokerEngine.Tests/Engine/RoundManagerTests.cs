@@ -106,8 +106,8 @@ namespace NPokerEngine.Tests.Engine
                 .Returns<int, int, Seats>((roundCount, playerPos, seats) => new Dictionary<string, object> { { seats.Players[playerPos].Uuid, "hoge" } });
             messageBuilderMock.Setup(mock => mock.BuildStreetStartMessage(It.IsAny<Dictionary<string, object>>()))
                 .Returns<Dictionary<string, object>>((state) => new Dictionary<string, object> { { "-1", "fuga" } });
-            messageBuilderMock.Setup(mock => mock.BuildAskMessage(It.IsAny<int>(), It.IsAny<Dictionary<string, object>>()))
-                .Returns<int, Dictionary<string, object>>((playerPos, state) => new Dictionary<string, object> { { ((Table)state["table"]).Seats.Players[playerPos].Uuid, "bar" } });
+            messageBuilderMock.Setup(mock => mock.BuildAskMessage(It.IsAny<int>(), It.IsAny<GameState>()))
+                .Returns<int, GameState>((playerPos, state) => new Dictionary<string, object> { { state.Table.Seats.Players[playerPos].Uuid, "bar" } });
             RoundManager.Instance.SetMessageBuilder(messageBuilderMock.Object);
 
             var messages = StartRound().messages;
@@ -143,8 +143,8 @@ namespace NPokerEngine.Tests.Engine
                 .Returns<int, int, Seats>((roundCount, playerPos, seats) => new Dictionary<string, object> { { seats.Players[playerPos].Uuid, "hoge" } });
             messageBuilderMock.Setup(mock => mock.BuildStreetStartMessage(It.IsAny<Dictionary<string, object>>()))
                 .Returns<Dictionary<string, object>>((state) => new Dictionary<string, object> { { "-1", "fuga" } });
-            messageBuilderMock.Setup(mock => mock.BuildAskMessage(It.IsAny<int>(), It.IsAny<Dictionary<string, object>>()))
-                .Returns<int, Dictionary<string, object>>((playerPos, state) => new Dictionary<string, object> { { ((Table)state["table"]).Seats.Players[playerPos].Uuid, "bar" } });
+            messageBuilderMock.Setup(mock => mock.BuildAskMessage(It.IsAny<int>(), It.IsAny<GameState>()))
+                .Returns<int, GameState>((playerPos, state) => new Dictionary<string, object> { { state.Table.Seats.Players[playerPos].Uuid, "bar" } });
             messageBuilderMock.Setup(mock => mock.BuildGameUpdateMessage(It.IsAny<int>(), It.IsAny<object>(), It.IsAny<object>(), It.IsAny<Dictionary<string, object>>()))
                 .Returns<int, object, object, Dictionary<string, object>>((playerPos, action, amount, state) => new Dictionary<string, object> { { nameof(IMessageBuilder.BuildGameUpdateMessage), "boo" } });
             RoundManager.Instance.SetMessageBuilder(messageBuilderMock.Object);
@@ -190,8 +190,8 @@ namespace NPokerEngine.Tests.Engine
             var messageBuilderMock = new Mock<IMessageBuilder>();
             messageBuilderMock.Setup(mock => mock.BuildStreetStartMessage(It.IsAny<Dictionary<string, object>>()))
                 .Returns<Dictionary<string, object>>((state) => new Dictionary<string, object> { { "-1", "fuga" } });
-            messageBuilderMock.Setup(mock => mock.BuildAskMessage(It.IsAny<int>(), It.IsAny<Dictionary<string, object>>()))
-                .Returns<int, Dictionary<string, object>>((playerPos, state) => new Dictionary<string, object> { { ((Table)state["table"]).Seats.Players[playerPos].Uuid, "bar" } });
+            messageBuilderMock.Setup(mock => mock.BuildAskMessage(It.IsAny<int>(), It.IsAny<GameState>()))
+                .Returns<int, GameState>((playerPos, state) => new Dictionary<string, object> { { state.Table.Seats.Players[playerPos].Uuid, "bar" } });
             messageBuilderMock.Setup(mock => mock.BuildGameUpdateMessage(It.IsAny<int>(), It.IsAny<object>(), It.IsAny<object>(), It.IsAny<Dictionary<string, object>>()))
                 .Returns<int, object, object, Dictionary<string, object>>((playerPos, action, amount, state) => new Dictionary<string, object> { { nameof(IMessageBuilder.BuildGameUpdateMessage), "boo" } });
             RoundManager.Instance.SetMessageBuilder(messageBuilderMock.Object);
@@ -298,8 +298,8 @@ namespace NPokerEngine.Tests.Engine
             var messageBuilderMock = new Mock<IMessageBuilder>();
             messageBuilderMock.Setup(mock => mock.BuildStreetStartMessage(It.IsAny<Dictionary<string, object>>()))
                 .Returns<Dictionary<string, object>>((state) => MessageBuilder.Instance.BuildStreetStartMessage(state));
-            messageBuilderMock.Setup(mock => mock.BuildAskMessage(It.IsAny<int>(), It.IsAny<Dictionary<string, object>>()))
-                .Returns<int, Dictionary<string, object>>((playerPos, state) => MessageBuilder.Instance.BuildAskMessage(playerPos, state));
+            messageBuilderMock.Setup(mock => mock.BuildAskMessage(It.IsAny<int>(), It.IsAny<GameState>()))
+                .Returns<int, GameState>((playerPos, state) => MessageBuilder.Instance.BuildAskMessage(playerPos, state));
             messageBuilderMock.Setup(mock => mock.BuildRoundResultMessage(It.IsAny<object>(), It.IsAny<IEnumerable<Player>>(), It.IsAny<object>(), It.IsAny<Dictionary<string, object>>()))
                 .Returns<object, IEnumerable<Player>, object, Dictionary<string, object>>((round_count, winners, hand_info, state) => new Dictionary<string, object> { { nameof(IMessageBuilder.BuildRoundResultMessage), "bogo" } });
             RoundManager.Instance.SetMessageBuilder(messageBuilderMock.Object);
@@ -336,8 +336,8 @@ namespace NPokerEngine.Tests.Engine
             var messageBuilderMock = new Mock<IMessageBuilder>();
             messageBuilderMock.Setup(mock => mock.BuildStreetStartMessage(It.IsAny<Dictionary<string, object>>()))
                 .Returns<Dictionary<string, object>>((state) => MessageBuilder.Instance.BuildStreetStartMessage(state));
-            messageBuilderMock.Setup(mock => mock.BuildAskMessage(It.IsAny<int>(), It.IsAny<Dictionary<string, object>>()))
-                .Returns<int, Dictionary<string, object>>((playerPos, state) => MessageBuilder.Instance.BuildAskMessage(playerPos, state));
+            messageBuilderMock.Setup(mock => mock.BuildAskMessage(It.IsAny<int>(), It.IsAny<GameState>()))
+                .Returns<int, GameState>((playerPos, state) => MessageBuilder.Instance.BuildAskMessage(playerPos, state));
             messageBuilderMock.Setup(mock => mock.BuildGameUpdateMessage(It.IsAny<int>(), It.IsAny<object>(), It.IsAny<object>(), It.IsAny<Dictionary<string, object>>()))
                 .Returns<int, object, object, Dictionary<string, object>>((playerPos, action, amount, state) => new Dictionary<string, object> { { nameof(IMessageBuilder.BuildGameUpdateMessage), "boo" } });
             messageBuilderMock.Setup(mock => mock.BuildRoundResultMessage(It.IsAny<object>(), It.IsAny<IEnumerable<Player>>(), It.IsAny<object>(), It.IsAny<Dictionary<string, object>>()))
@@ -372,8 +372,8 @@ namespace NPokerEngine.Tests.Engine
             var messageBuilderMock = new Mock<IMessageBuilder>();
             messageBuilderMock.Setup(mock => mock.BuildStreetStartMessage(It.IsAny<Dictionary<string, object>>()))
                 .Returns<Dictionary<string, object>>((state) => MessageBuilder.Instance.BuildStreetStartMessage(state));
-            messageBuilderMock.Setup(mock => mock.BuildAskMessage(It.IsAny<int>(), It.IsAny<Dictionary<string, object>>()))
-                .Returns<int, Dictionary<string, object>>((playerPos, state) => MessageBuilder.Instance.BuildAskMessage(playerPos, state));
+            messageBuilderMock.Setup(mock => mock.BuildAskMessage(It.IsAny<int>(), It.IsAny<GameState>()))
+                .Returns<int, GameState>((playerPos, state) => MessageBuilder.Instance.BuildAskMessage(playerPos, state));
             messageBuilderMock.Setup(mock => mock.BuildGameUpdateMessage(It.IsAny<int>(), It.IsAny<object>(), It.IsAny<object>(), It.IsAny<Dictionary<string, object>>()))
                 .Returns<int, object, object, Dictionary<string, object>>((playerPos, action, amount, state) => new Dictionary<string, object> { { nameof(IMessageBuilder.BuildGameUpdateMessage), "boo" } });
             messageBuilderMock.Setup(mock => mock.BuildRoundResultMessage(It.IsAny<object>(), It.IsAny<IEnumerable<Player>>(), It.IsAny<object>(), It.IsAny<Dictionary<string, object>>()))
