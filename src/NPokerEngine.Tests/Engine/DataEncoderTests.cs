@@ -216,13 +216,13 @@ namespace NPokerEngine.Tests.Engine
 
         private Player SetupPlayer(int? idx = null)
         {
-            var player = SetupPlayerWithPayInfo(idx ?? 0, "hoge", 50, PayInfo.FOLDED);
+            var player = SetupPlayerWithPayInfo(idx ?? 0, "hoge", 50, PayInfoStatus.FOLDED);
             player.AddHoleCards(Card.FromId(1), Card.FromId(2));
             player.AddActionHistory(ActionType.CALL, 50);
             return player;
         }
 
-        private Player SetupPlayerWithPayInfo(int idx, string name, float amount, int status)
+        private Player SetupPlayerWithPayInfo(int idx, string name, float amount, PayInfoStatus status)
         {
             var player = new Player($"uuid{idx}", 100, name);
             player.PayInfo._amount = amount;
@@ -233,11 +233,11 @@ namespace NPokerEngine.Tests.Engine
         private List<Player> SetupPlayersForPot()
             => new List<Player>
             { 
-                SetupPlayerWithPayInfo(0, "A", 5, PayInfo.ALLIN),
-                SetupPlayerWithPayInfo(1, "B", 10, PayInfo.PAY_TILL_END),
-                SetupPlayerWithPayInfo(2, "C", 8, PayInfo.ALLIN),
-                SetupPlayerWithPayInfo(3, "D", 10, PayInfo.PAY_TILL_END),
-                SetupPlayerWithPayInfo(4, "E", 2, PayInfo.FOLDED)
+                SetupPlayerWithPayInfo(0, "A", 5, PayInfoStatus.ALLIN),
+                SetupPlayerWithPayInfo(1, "B", 10, PayInfoStatus.PAY_TILL_END),
+                SetupPlayerWithPayInfo(2, "C", 8, PayInfoStatus.ALLIN),
+                SetupPlayerWithPayInfo(3, "D", 10, PayInfoStatus.PAY_TILL_END),
+                SetupPlayerWithPayInfo(4, "E", 2, PayInfoStatus.FOLDED)
             };
 
         private Seats SetupSeats()

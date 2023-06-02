@@ -67,7 +67,7 @@ namespace NPokerEngine.Tests.Types
             {
                 _player.HoleCards.Should().BeEmpty();
                 _player.ActionHistories.Should().BeEmpty();
-                _player.PayInfo.Status.Should().Be(PayInfo.PAY_TILL_END);
+                _player.PayInfo.Status.Should().Be(PayInfoStatus.PAY_TILL_END);
             }
         }
 

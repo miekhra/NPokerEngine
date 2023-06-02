@@ -36,9 +36,9 @@ namespace NPokerEngine.Engine
                 { "stack", player.Stack },
                 { "state", player.PayInfo.Status switch 
                     {
-                        PayInfo.PAY_TILL_END => PAY_INFO_PAY_TILL_END_STR,
-                        PayInfo.ALLIN => PAY_INFO_ALLIN_STR,
-                        PayInfo.FOLDED => PAY_INFO_FOLDED_STR,
+                        PayInfoStatus.PAY_TILL_END => PAY_INFO_PAY_TILL_END_STR,
+                        PayInfoStatus.ALLIN => PAY_INFO_ALLIN_STR,
+                        PayInfoStatus.FOLDED => PAY_INFO_FOLDED_STR,
                         _ => string.Empty
                     }
                 }
@@ -355,17 +355,17 @@ namespace NPokerEngine.Engine
             return hsh;
         }
 
-        private string PayInfoToStr(int status)
+        private string PayInfoToStr(PayInfoStatus status)
         {
-            if (status == PayInfo.PAY_TILL_END)
+            if (status == PayInfoStatus.PAY_TILL_END)
             {
                 return PAY_INFO_PAY_TILL_END_STR;
             }
-            if (status == PayInfo.ALLIN)
+            if (status == PayInfoStatus.ALLIN)
             {
                 return PAY_INFO_ALLIN_STR;
             }
-            if (status == PayInfo.FOLDED)
+            if (status == PayInfoStatus.FOLDED)
             {
                 return PAY_INFO_FOLDED_STR;
             }

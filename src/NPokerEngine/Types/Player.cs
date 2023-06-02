@@ -79,12 +79,12 @@ namespace NPokerEngine.Types
 
         public bool IsActive()
         {
-            return this._payInfo.Status != PayInfo.FOLDED;
+            return this._payInfo.Status != PayInfoStatus.FOLDED;
         }
 
         public bool IsWaitingAsk()
         {
-            return this._payInfo.Status == PayInfo.PAY_TILL_END;
+            return this._payInfo.Status == PayInfoStatus.PAY_TILL_END;
         }
 
         public void AddActionHistory(ActionType kind, float chipAmount = 0, float addAmount = 0, float sbAmount = 0)

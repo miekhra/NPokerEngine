@@ -21,9 +21,9 @@ namespace NPokerEngine.Tests.Engine
         {
             var players = new Dictionary<string, Player>()
             {
-                { "A", CreatePlayerWithInfo("A", 50, PayInfo.PAY_TILL_END ) },
-                { "B", CreatePlayerWithInfo("B", 20, PayInfo.ALLIN ) },
-                { "C", CreatePlayerWithInfo("C", 30, PayInfo.ALLIN ) }
+                { "A", CreatePlayerWithInfo("A", 50, PayInfoStatus.PAY_TILL_END ) },
+                { "B", CreatePlayerWithInfo("B", 20, PayInfoStatus.ALLIN ) },
+                { "C", CreatePlayerWithInfo("C", 30, PayInfoStatus.ALLIN ) }
             };
 
             var pots = GameEvaluator.Instance.CreatePot(players.Values);
@@ -43,9 +43,9 @@ namespace NPokerEngine.Tests.Engine
         {
             var players = new Dictionary<string, Player>()
             {
-                { "A", CreatePlayerWithInfo("A", 10, PayInfo.PAY_TILL_END ) },
-                { "B", CreatePlayerWithInfo("B", 10, PayInfo.PAY_TILL_END ) },
-                { "C", CreatePlayerWithInfo("C", 7, PayInfo.ALLIN ) }
+                { "A", CreatePlayerWithInfo("A", 10, PayInfoStatus.PAY_TILL_END ) },
+                { "B", CreatePlayerWithInfo("B", 10, PayInfoStatus.PAY_TILL_END ) },
+                { "C", CreatePlayerWithInfo("C", 7, PayInfoStatus.ALLIN ) }
             };
 
             var pots = GameEvaluator.Instance.CreatePot(players.Values);
@@ -64,10 +64,10 @@ namespace NPokerEngine.Tests.Engine
         {
             var players = new Dictionary<string, Player>()
             {
-                { "A", CreatePlayerWithInfo("A", 20, PayInfo.FOLDED ) },
-                { "B", CreatePlayerWithInfo("B", 30, PayInfo.PAY_TILL_END ) },
-                { "C", CreatePlayerWithInfo("C", 7, PayInfo.ALLIN ) },
-                { "D", CreatePlayerWithInfo("D", 30, PayInfo.PAY_TILL_END ) }
+                { "A", CreatePlayerWithInfo("A", 20, PayInfoStatus.FOLDED ) },
+                { "B", CreatePlayerWithInfo("B", 30, PayInfoStatus.PAY_TILL_END ) },
+                { "C", CreatePlayerWithInfo("C", 7, PayInfoStatus.ALLIN ) },
+                { "D", CreatePlayerWithInfo("D", 30, PayInfoStatus.PAY_TILL_END ) }
             };
 
             var pots = GameEvaluator.Instance.CreatePot(players.Values);
@@ -86,10 +86,10 @@ namespace NPokerEngine.Tests.Engine
         {
             var players = new Dictionary<string, Player>()
             {
-                { "A", CreatePlayerWithInfo("A", 12, PayInfo.ALLIN ) },
-                { "B", CreatePlayerWithInfo("B", 30, PayInfo.PAY_TILL_END ) },
-                { "C", CreatePlayerWithInfo("C", 7, PayInfo.ALLIN ) },
-                { "D", CreatePlayerWithInfo("D", 30, PayInfo.PAY_TILL_END ) }
+                { "A", CreatePlayerWithInfo("A", 12, PayInfoStatus.ALLIN ) },
+                { "B", CreatePlayerWithInfo("B", 30, PayInfoStatus.PAY_TILL_END ) },
+                { "C", CreatePlayerWithInfo("C", 7, PayInfoStatus.ALLIN ) },
+                { "D", CreatePlayerWithInfo("D", 30, PayInfoStatus.PAY_TILL_END ) }
             };
 
             var pots = GameEvaluator.Instance.CreatePot(players.Values);
@@ -109,11 +109,11 @@ namespace NPokerEngine.Tests.Engine
         {
             var players = new Dictionary<string, Player>()
             {
-                { "A", CreatePlayerWithInfo("A", 5, PayInfo.ALLIN ) },
-                { "B", CreatePlayerWithInfo("B", 10, PayInfo.PAY_TILL_END ) },
-                { "C", CreatePlayerWithInfo("C", 8, PayInfo.ALLIN ) },
-                { "D", CreatePlayerWithInfo("D", 10, PayInfo.PAY_TILL_END ) },
-                { "E", CreatePlayerWithInfo("E", 2, PayInfo.FOLDED ) }
+                { "A", CreatePlayerWithInfo("A", 5, PayInfoStatus.ALLIN ) },
+                { "B", CreatePlayerWithInfo("B", 10, PayInfoStatus.PAY_TILL_END ) },
+                { "C", CreatePlayerWithInfo("C", 8, PayInfoStatus.ALLIN ) },
+                { "D", CreatePlayerWithInfo("D", 10, PayInfoStatus.PAY_TILL_END ) },
+                { "E", CreatePlayerWithInfo("E", 2, PayInfoStatus.FOLDED ) }
             };
 
             var pots = GameEvaluator.Instance.CreatePot(players.Values);
@@ -127,7 +127,7 @@ namespace NPokerEngine.Tests.Engine
             }
         }
 
-        private Player CreatePlayerWithInfo(string name, float amount, int status)
+        private Player CreatePlayerWithInfo(string name, float amount, PayInfoStatus status)
         {
             var player = new Player("uuid", 100, name);
             player.PayInfo._amount = amount;

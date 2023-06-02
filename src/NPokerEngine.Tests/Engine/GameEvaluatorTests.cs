@@ -35,7 +35,7 @@ namespace NPokerEngine.Tests.Engine
         [TestMethod]
         public void JudgeWithoutAllinTest()
         {
-            var players = Enumerable.Range(0,3).Select(ix => CreatePlayerWithPayInfo(ix.ToString(), 5, PayInfo.PAY_TILL_END)).ToList();
+            var players = Enumerable.Range(0,3).Select(ix => CreatePlayerWithPayInfo(ix.ToString(), 5, PayInfoStatus.PAY_TILL_END)).ToList();
             var table = SetupTable(players);
 
             var handEvalMock = new Mock<IHandEvaluator>();
@@ -55,7 +55,7 @@ namespace NPokerEngine.Tests.Engine
         [TestMethod]
         public void JudjeWithoutAllinButWinnerFoldedTest()
         {
-            var players = Enumerable.Range(0, 3).Select(ix => CreatePlayerWithPayInfo(ix.ToString(), 5, PayInfo.PAY_TILL_END)).ToList();
+            var players = Enumerable.Range(0, 3).Select(ix => CreatePlayerWithPayInfo(ix.ToString(), 5, PayInfoStatus.PAY_TILL_END)).ToList();
             players[1].PayInfo.UpdateToFold();
             var table = SetupTable(players);
 
@@ -213,13 +213,13 @@ namespace NPokerEngine.Tests.Engine
         {
             return new Player[]
             {
-                CreatePlayerWithPayInfo("A", 50, PayInfo.PAY_TILL_END),
-                CreatePlayerWithPayInfo("B", 20, PayInfo.ALLIN),
-                CreatePlayerWithPayInfo("C", 30, PayInfo.ALLIN)
+                CreatePlayerWithPayInfo("A", 50, PayInfoStatus.PAY_TILL_END),
+                CreatePlayerWithPayInfo("B", 20, PayInfoStatus.ALLIN),
+                CreatePlayerWithPayInfo("C", 30, PayInfoStatus.ALLIN)
             };
         }
 
-        private Player CreatePlayerWithPayInfo(string name, float amount, int status)
+        private Player CreatePlayerWithPayInfo(string name, float amount, PayInfoStatus status)
         {
             var player = new Player($"uuid{name}", 100, name);
             player.PayInfo._amount = amount;

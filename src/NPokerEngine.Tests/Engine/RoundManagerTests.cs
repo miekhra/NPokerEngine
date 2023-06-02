@@ -74,7 +74,7 @@ namespace NPokerEngine.Tests.Engine
             var sbAmount = 5;
             var table = SetupTable();
             table.Seats.Players[2].Stack = 0;
-            table.Seats.Players[2].PayInfo._status = PayInfo.FOLDED;
+            table.Seats.Players[2].PayInfo._status = PayInfoStatus.FOLDED;
 
             var (roundState, _) = RoundManager.Instance.StartNewRound(1, sbAmount, ante, table);
             var players = roundState.Table.Seats.Players;
@@ -401,7 +401,7 @@ namespace NPokerEngine.Tests.Engine
                 state.Table.CommunityCards.Should().BeNullOrEmpty();
                 state.Table.Seats.Players[0].HoleCards.Should().BeNullOrEmpty();
                 state.Table.Seats.Players[0].ActionHistories.Should().BeNullOrEmpty();
-                state.Table.Seats.Players[0].PayInfo.Status.Should().Be(PayInfo.PAY_TILL_END);
+                state.Table.Seats.Players[0].PayInfo.Status.Should().Be(PayInfoStatus.PAY_TILL_END);
             }
         }
 

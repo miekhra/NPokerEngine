@@ -28,7 +28,7 @@ namespace NPokerEngine.Tests.Types
             using (new AssertionScope())
             {
                 _payInfo.Amount.Should().Be(10);
-                _payInfo.Status.Should().Be(PayInfo.PAY_TILL_END);
+                _payInfo.Status.Should().Be(PayInfoStatus.PAY_TILL_END);
             }
         }
 
@@ -39,7 +39,7 @@ namespace NPokerEngine.Tests.Types
             using (new AssertionScope())
             {
                 _payInfo.Amount.Should().Be(0);
-                _payInfo.Status.Should().Be(PayInfo.ALLIN);
+                _payInfo.Status.Should().Be(PayInfoStatus.ALLIN);
             }
         }
 
@@ -50,7 +50,7 @@ namespace NPokerEngine.Tests.Types
             using (new AssertionScope())
             {
                 _payInfo.Amount.Should().Be(0);
-                _payInfo.Status.Should().Be(PayInfo.FOLDED);
+                _payInfo.Status.Should().Be(PayInfoStatus.FOLDED);
             }
         }
 
@@ -64,7 +64,7 @@ namespace NPokerEngine.Tests.Types
             {
                 object.ReferenceEquals(copy, _payInfo).Should().BeFalse();
                 copy.Amount.Should().Be(100);
-                copy.Status.Should().Be(PayInfo.ALLIN);
+                copy.Status.Should().Be(PayInfoStatus.ALLIN);
             }
         }
     }

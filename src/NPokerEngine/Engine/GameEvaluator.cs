@@ -60,7 +60,7 @@ namespace NPokerEngine.Engine
 
         private Dictionary<int, float> CreatePrizeMap(int playerNum)
         {
-            return Enumerable.Range(0, playerNum).ToDictionary(k => k, v => Convert.ToSingle(0));
+            return Enumerable.Range(0, playerNum).ToDictionary(k => k, v => 0f);
         }
 
         internal List<Player> FindWinnersFrom(IEnumerable<Player> players, IEnumerable<Card> community)
@@ -133,13 +133,6 @@ namespace NPokerEngine.Engine
                 Amount = this.CalcSidepotSize(players, smallerSidePots, allinAmount),
                 Eligibles = this.SelectEligibles(players, allinAmount)
             };
-            //return new Dictionary<string, object> {
-            //        {
-            //            "amount",
-            //            this.CalcSidepotSize(players, smallerSidePots, allinAmount)},
-            //        {
-            //            "eligibles",
-            //            this.SelectEligibles(players, allinAmount)}};
         }
 
         private float CalcSidepotSize(IEnumerable<Player> players, IEnumerable<PotInfo> smallerSidePots, int allinAmount)
@@ -163,14 +156,14 @@ namespace NPokerEngine.Engine
 
         private bool IsEligible(Player player, int allinAmount)
         {
-            return player.PayInfo.Amount >= allinAmount && player.PayInfo.Status != PayInfo.FOLDED;
+            return player.PayInfo.Amount >= allinAmount && player.PayInfo.Status != PayInfoStatus.FOLDED;
         }
 
         private List<PayInfo> FetchAllInPayInfo(IEnumerable<Player> players)
         {
             var payinfo = this.GetPayInfo(players);
             var allinInfo = (from info in payinfo
-                              where info.Status == PayInfo.ALLIN
+                              where info.Status == PayInfoStatus.ALLIN
                               select info).ToList();
             return allinInfo.OrderBy(info => info.Amount).ToList();
         }

@@ -442,8 +442,8 @@ namespace NPokerEngine.Engine
             var bb_ask_once = player.ActionHistories.Any() && player.ActionHistories.Count == 1 && player.ActionHistories[0].ActionType == ActionType.BIG_BLIND; // Player.ACTION_BIG_BLIND;
             var bb_ask_check = !is_preflop || !bb_ask_once;
             return bb_ask_check && player.PaidSum() == maxPay && player.ActionHistories.Count != 0 || new List<object> {
-                    PayInfo.FOLDED,
-                    PayInfo.ALLIN
+                    PayInfoStatus.FOLDED,
+                    PayInfoStatus.ALLIN
                 }.Contains(player.PayInfo.Status);
         }
 

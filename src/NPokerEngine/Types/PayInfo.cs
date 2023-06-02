@@ -6,17 +6,13 @@ namespace NPokerEngine.Types
 {
     public class PayInfo
     {
-        public const int PAY_TILL_END = 0;
-        public const int ALLIN = 1;
-        public const int FOLDED = 2;
-
         internal float _amount;
-        internal int _status;
+        internal PayInfoStatus _status;
 
-        public int Status => _status;
+        public PayInfoStatus Status => _status;
         public float Amount => _amount;
 
-        public PayInfo(float amount = 0, int status = 0)
+        public PayInfo(float amount = 0, PayInfoStatus status = 0)
         {
             _amount = amount;
             _status = status;
@@ -29,12 +25,12 @@ namespace NPokerEngine.Types
 
         public void UpdateToFold()
         {
-            this._status = FOLDED;
+            this._status = PayInfoStatus.FOLDED;
         }
 
         public void UpdateToAllin()
         {
-            this._status = ALLIN;
+            this._status = PayInfoStatus.ALLIN;
         }
     }
 }
