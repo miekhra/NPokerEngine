@@ -8,12 +8,12 @@ using System.Text;
 
 namespace NPokerEngine.Types
 {
-    public class Deck
+    public class Deck : ICloneable
     {
         internal List<Card> _deck;
-        internal readonly ReadOnlyCollection<int> _cheatCardIds;
+        internal ReadOnlyCollection<int> _cheatCardIds;
         private int _popIndex = 0;
-        private readonly bool _isCheat;
+        private bool _isCheat;
 
         public bool IsCheat => _isCheat;
         public int Size => _deck.Count - _popIndex;
@@ -76,6 +76,18 @@ namespace NPokerEngine.Types
             var cardIds = split[2].TrimEnd(']').Split(new char[] { ';' }, StringSplitOptions.RemoveEmptyEntries).Select(t => Convert.ToInt32(t));
             var cheatCardIds = split[1].Split(new char[] { ';' }, StringSplitOptions.RemoveEmptyEntries).Select(t => Convert.ToInt32(t));
             return new Deck(cardIds, isCheat, cheatCardIds);
+        }
+
+        public object Clone()
+        {
+            var deck = new Deck();
+            deck._popIndex = this._popIndex;
+            deck._isCheat = this._isCheat;
+            if (this._cheatCardIds != null)
+                deck._cheatCardIds = this._cheatCardIds.ToList().AsReadOnly();
+            if (this._deck != null)
+                deck._deck = this._deck.Select(card => card.Clone()).Cast<Card>().ToList();
+            return deck;
         }
     }
 }

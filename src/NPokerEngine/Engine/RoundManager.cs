@@ -3,6 +3,7 @@ using NPokerEngine.Utils;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -35,11 +36,11 @@ namespace NPokerEngine.Engine
         internal void SetMessageBuilder(IMessageBuilder messageBuilder)
             => _messageBuilder = messageBuilder;
 
-        public (Dictionary<string, object> roundState, List<(string, object)> messages) StartNewRound(int round_count, int small_blind_amount, int ante_amount, Table table)
+        public (GameState roundState, List<(string, object)> messages) StartNewRound(int round_count, float small_blind_amount, float ante_amount, Table table)
         {
             var _state = this.GenerateInitialState(round_count, small_blind_amount, table);
             var state = this.DeepCopyState(_state);
-            table = (Table)state["table"];
+            table = state.Table;
             table.Deck.Shuffle();
             this.CorrectAnte(ante_amount, table.Seats.Players);
             this.CorrectBlind(small_blind_amount, table);
@@ -69,19 +70,19 @@ namespace NPokerEngine.Engine
             return (state, messages);
         }
 
-        public Tuple<Dictionary<string, object>, object> ApplyAction(Dictionary<string, object> original_state, string action, int bet_amount)
+        public Tuple<GameState, object> ApplyAction(GameState original_state, string action, int bet_amount)
         {
 
             var state = this.DeepCopyState(original_state);
             state = this.UpdateStateByAction(state, action, bet_amount);
-            var table = (Table)state["table"];
+            var table = state.Table;
             var update_msg = this.UpdateMessage(state, action, bet_amount);
             if (_messageBuilder != null && update_msg is ValueTuple<int, Dictionary<string, object>> tup && tup.Item2 != null)
                 update_msg = new Tuple<string, object>(tup.Item1.ToString(), tup.Item2.ElementAt(0).Value);
             if (this.IsEveryoneAgreed(state))
             {
-                table.Seats.Players.ForEach(p => p.SaveStreetActionHistories((StreetType)Convert.ToByte(state["street"])));
-                state["street"] = Convert.ToByte((byte)state["street"] + 1);
+                table.Seats.Players.ForEach(p => p.SaveStreetActionHistories(state.Street));
+                state.Street = (StreetType)(Convert.ToByte(state.Street) + 1);
                 var _tup_1 = this.StartStreet(state);
                 state = _tup_1.Item1;
                 var street_msgs = _tup_1.Item2;
@@ -115,10 +116,10 @@ namespace NPokerEngine.Engine
             }
             else
             {
-                state["next_player"] = table.NextAskWaitingPlayerPosition((int)state["next_player"]);
-                var next_player_pos = (int)state["next_player"];
+                state.NextPlayerIx = table.NextAskWaitingPlayerPosition(state.NextPlayerIx);
+                var next_player_pos = state.NextPlayerIx;
                 var next_player = table.Seats.Players[next_player_pos];
-                var ask_message = (next_player.Uuid, (_messageBuilder ?? MessageBuilder.Instance).BuildAskMessage(next_player_pos, state));
+                var ask_message = (next_player.Uuid, (_messageBuilder ?? MessageBuilder.Instance).BuildAskMessage(next_player_pos, state.ToDictionary()));
                 if (_messageBuilder != null)
                 {
                     Tuple<string, object> askMessage2 = default;
@@ -140,7 +141,7 @@ namespace NPokerEngine.Engine
             }
         }
 
-        private void CorrectAnte(int ante_amount, IEnumerable<Player> players)
+        private void CorrectAnte(float ante_amount, IEnumerable<Player> players)
         {
             if (ante_amount == 0)
             {
@@ -157,13 +158,13 @@ namespace NPokerEngine.Engine
             }
         }
 
-        private void CorrectBlind(int sb_amount, Table table)
+        private void CorrectBlind(float sb_amount, Table table)
         {
             this.BlindTransaction(table.Seats.Players[table.SmallBlindPosition.Value], true, sb_amount);
             this.BlindTransaction(table.Seats.Players[table.BigBlindPosition.Value], false, sb_amount);
         }
 
-        private void BlindTransaction(Player player, bool small_blind, int sb_amount)
+        private void BlindTransaction(Player player, bool small_blind, float sb_amount)
         {
             var action = small_blind ? ActionType.SMALL_BLIND : ActionType.BIG_BLIND;
             var blind_amount = small_blind ? sb_amount : sb_amount * 2;
@@ -180,104 +181,91 @@ namespace NPokerEngine.Engine
             }
         }
 
-        private Tuple<Dictionary<string, object>, object> StartStreet(Dictionary<string, object> state)
+        private Tuple<GameState, object> StartStreet(GameState state)
         {
-            var next_player_pos = ((Table)state["table"]).NextAskWaitingPlayerPosition(((Table)state["table"]).SmallBlindPosition.Value - 1);
-            state["next_player"] = next_player_pos;
-            var street = Convert.ToByte(state["street"]);
-            if (street == (byte)StreetType.PREFLOP)
+            var next_player_pos = state.Table.NextAskWaitingPlayerPosition(state.Table.SmallBlindPosition.Value - 1);
+            state.NextPlayerIx = next_player_pos;
+            switch (state.Street)
             {
-                return this.PreFlop(state);
-            }
-            else if (street == (byte)StreetType.FLOP)
-            {
-                return this.Flop(state);
-            }
-            else if (street == (byte)StreetType.TURN)
-            {
-                return this.Turn(state);
-            }
-            else if (street == (byte)StreetType.RIVER)
-            {
-                return this.River(state);
-            }
-            else if (street == (byte)StreetType.SHOWDOWN)
-            {
-                return this.Showdown(state);
-            }
-            else
-            {
-                throw new ArgumentException(String.Format("Street is already finished [street = %d]", street));
-            }
+                case StreetType.PREFLOP:
+                    return this.PreFlop(state);
+                case StreetType.FLOP:
+                    return this.Flop(state);
+                case StreetType.TURN:
+                    return this.Turn(state);
+                case StreetType.RIVER:
+                    return this.River(state);
+                case StreetType.SHOWDOWN:
+                    return this.Showdown(state);
+                default:
+                    throw new ArgumentException(String.Format("Street is already finished [street = %d]", state.Street));
+            };
         }
 
-        private Tuple<Dictionary<string, object>, object> PreFlop(Dictionary<string, object> state)
+        private Tuple<GameState, object> PreFlop(GameState state)
         {
             foreach (var i in Enumerable.Range(0, 2))
             {
-                state["next_player"] = ((Table)state["table"]).NextAskWaitingPlayerPosition((int)state["next_player"]);
+                state.NextPlayerIx = state.Table.NextAskWaitingPlayerPosition(state.NextPlayerIx);
             }
             return this.ForwardStreet(state);
         }
 
-        private Tuple<Dictionary<string, object>, object> Flop(Dictionary<string, object> state)
+        private Tuple<GameState, object> Flop(GameState state)
         {
-            var table = (Table)state["table"];
-            foreach (var card in table.Deck.DrawCards(3))
+            foreach (var card in state.Table.Deck.DrawCards(3))
             {
-                table.AddCommunityCard(card);
+                state.Table.AddCommunityCard(card);
             }
             // BB goes first in Heads-Up
-            if (table.Seats.Players.Count == 2)
+            if (state.Table.Seats.Players.Count == 2)
             {
-                if (state["next_player"] is int)
+                if (state.NextPlayerIx != -1)
                 {
-                    state["next_player"] = table.NextAskWaitingPlayerPosition((int)state["next_player"]);
+                    state.NextPlayerIx = state.Table.NextAskWaitingPlayerPosition(state.NextPlayerIx);
                 }
             }
             return this.ForwardStreet(state);
         }
 
-        private Tuple<Dictionary<string, object>, object> Turn(Dictionary<string, object> state)
+        private Tuple<GameState, object> Turn(GameState state)
         {
-            var table = (Table)state["table"];
-            table.AddCommunityCard(table.Deck.DrawCard());
+            state.Table.AddCommunityCard(state.Table.Deck.DrawCard());
             // BB goes first in Heads-Up
-            if (table.Seats.Players.Count == 2)
+            if (state.Table.Seats.Players.Count == 2)
             {
-                if (state["next_player"] is int)
+                if (state.NextPlayerIx != -1)
                 {
-                    state["next_player"] = table.NextAskWaitingPlayerPosition((int)state["next_player"]);
+                    state.NextPlayerIx = state.Table.NextAskWaitingPlayerPosition(state.NextPlayerIx);
                 }
             }
             return this.ForwardStreet(state);
         }
 
-        private Tuple<Dictionary<string, object>, object> River(Dictionary<string, object> state)
+        private Tuple<GameState, object> River(GameState state)
         {
-            var table = (Table)state["table"];
-            table.AddCommunityCard(table.Deck.DrawCard());
+            state.Table.AddCommunityCard(state.Table.Deck.DrawCard());
             // BB goes first in Heads-Up
-            if (table.Seats.Players.Count == 2)
+            if (state.Table.Seats.Players.Count == 2)
             {
-                if (state["next_player"] is int)
+                if (state.NextPlayerIx != -1)
                 {
-                    state["next_player"] = table.NextAskWaitingPlayerPosition((int)state["next_player"]);
+                    state.NextPlayerIx = state.Table.NextAskWaitingPlayerPosition(state.NextPlayerIx);
                 }
             }
             return this.ForwardStreet(state);
         }
 
-        private Tuple<Dictionary<string, object>, object> Showdown(Dictionary<string, object> state)
+        private Tuple<GameState, object> Showdown(GameState state)
         {
-            var _tup_1 = GameEvaluator.Instance.Judge((Table)state["table"]);
+            var _tup_1 = GameEvaluator.Instance.Judge((Table)state.Table);
             var winners = _tup_1.Item1;
             var hand_info = _tup_1.Item2;
             var prize_map = _tup_1.Item3;
-            this.PrizeToWinners(((Table)state["table"]).Seats.Players, prize_map);
-            var result_message = (_messageBuilder ?? MessageBuilder.Instance).BuildRoundResultMessage(state["round_count"], winners, hand_info, state);
-            ((Table)state["table"]).Reset();
-            state["street"] = Convert.ToByte(Convert.ToByte(state["street"]) + 1);
+            this.PrizeToWinners(state.Table.Seats.Players, prize_map);
+            var result_message = (_messageBuilder ?? MessageBuilder.Instance).BuildRoundResultMessage(state.RoundCount, winners, hand_info, state.ToDictionary());
+            state.Table.Reset();
+            state.Street = (StreetType)(Convert.ToByte(state.Street) + 1);
             return Tuple.Create(state, (object)result_message);
         }
 
@@ -305,17 +293,16 @@ namespace NPokerEngine.Engine
             return aggregation;
         }
 
-        private Tuple<Dictionary<string, object>, object> ForwardStreet(Dictionary<string, object> state)
+        private Tuple<GameState, object> ForwardStreet(GameState state)
         {
-            var table = (Table)state["table"];
-            var street_start_msg = (_messageBuilder ?? MessageBuilder.Instance).BuildStreetStartMessage(state);
-            if (table.Seats.ActivePlayersCount() == 1)
+            var street_start_msg = (_messageBuilder ?? MessageBuilder.Instance).BuildStreetStartMessage(state.ToDictionary());
+            if (state.Table.Seats.ActivePlayersCount() == 1)
             {
                 street_start_msg = new Dictionary<string, object>();
             }
-            if (table.Seats.AskWaitPlayersCount() <= 1)
+            if (state.Table.Seats.AskWaitPlayersCount() <= 1)
             {
-                state["street"] = Convert.ToByte(Convert.ToByte(state["street"]) + 1);
+                state.Street = (StreetType)(Convert.ToByte(state.Street) + 1);
                 var _tup_1 = this.StartStreet(state);
                 state = _tup_1.Item1;
                 var messages = _tup_1.Item2;
@@ -342,20 +329,20 @@ namespace NPokerEngine.Engine
             }
             else
             {
-                var next_player_pos = (int)state["next_player"];
-                var next_player = table.Seats.Players[next_player_pos];
+                var next_player_pos = state.NextPlayerIx;
+                var next_player = state.Table.Seats.Players[next_player_pos];
                 var ask_message = new List<object> {
-                        (next_player.Uuid, (_messageBuilder ?? MessageBuilder.Instance).BuildAskMessage(next_player_pos,state))
+                        (next_player.Uuid, (_messageBuilder ?? MessageBuilder.Instance).BuildAskMessage(next_player_pos,state.ToDictionary()))
                     };
                 if (_messageBuilder != null)
                 {
-                    street_start_msg[next_player.Uuid] = (_messageBuilder ?? MessageBuilder.Instance).BuildAskMessage(next_player_pos, state).Values.First();
+                    street_start_msg[next_player.Uuid] = (_messageBuilder ?? MessageBuilder.Instance).BuildAskMessage(next_player_pos, state.ToDictionary()).Values.First();
                     return Tuple.Create(state, (object)street_start_msg);
                 }
                 else
                 {
                     var messageDict = new Dictionary<string, object>();
-                    messageDict.Add("-1", MessageBuilder.Instance.BuildStreetStartMessage(state));
+                    messageDict.Add("-1", MessageBuilder.Instance.BuildStreetStartMessage(state.ToDictionary()));
                     messageDict.Add(((ValueTuple<string, Dictionary<string,object>>)ask_message[0]).Item1, ((ValueTuple<string, Dictionary<string, object>>)ask_message[0]).Item2);
 
                     return Tuple.Create(state, (object)messageDict);
@@ -365,13 +352,12 @@ namespace NPokerEngine.Engine
             }
         }
 
-        private Dictionary<string, object> UpdateStateByAction(Dictionary<string, object> state, string action, int bet_amount)
+        private GameState UpdateStateByAction(GameState state, string action, int bet_amount)
         {
-            var table = (Table)state["table"];
-            var _tup_1 = ActionChecker.Instance.CorrectAction(table.Seats.Players, (int)state["next_player"], Convert.ToSingle(state["small_blind_amount"]), action, bet_amount);
+            var _tup_1 = ActionChecker.Instance.CorrectAction(state.Table.Seats.Players, state.NextPlayerIx, state.SmallBlindAmount, action, bet_amount);
             action = _tup_1.Item1;
             bet_amount = (int)_tup_1.Item2;
-            var next_player = table.Seats.Players[(int)state["next_player"]];
+            var next_player = state.Table.Seats.Players[state.NextPlayerIx];
             if (ActionChecker.Instance.IsAllin(next_player, action, bet_amount))
             {
                 next_player.PayInfo.UpdateToAllin();
@@ -379,9 +365,9 @@ namespace NPokerEngine.Engine
             return this.AcceptAction(state, action, bet_amount);
         }
 
-        private Dictionary<string, object> AcceptAction(Dictionary<string, object> state, string action, int bet_amount)
+        private GameState AcceptAction(GameState state, string action, int bet_amount)
         {
-            var player = ((Table)state["table"]).Seats.Players[(int)state["next_player"]];
+            var player = state.Table.Seats.Players[state.NextPlayerIx];
             if (action == "call")
             {
                 this.ChipTransaction(player, bet_amount);
@@ -390,7 +376,7 @@ namespace NPokerEngine.Engine
             else if (action == "raise")
             {
                 this.ChipTransaction(player, bet_amount);
-                var add_amount = bet_amount - ActionChecker.Instance.AgreeAmount(((Table)state["table"]).Seats.Players);
+                var add_amount = bet_amount - ActionChecker.Instance.AgreeAmount(state.Table.Seats.Players);
                 player.AddActionHistory(ActionType.RAISE, bet_amount, add_amount);
             }
             else if (action == "fold")
@@ -412,19 +398,19 @@ namespace NPokerEngine.Engine
             player.PayInfo.UpdateByPay(need_amount);
         }
 
-        private object UpdateMessage(Dictionary<string, object> state, object action, object bet_amount)
+        private object UpdateMessage(GameState state, object action, object bet_amount)
         {
-            return (-1, (_messageBuilder ?? MessageBuilder.Instance).BuildGameUpdateMessage((int)state["next_player"], action, bet_amount, state));
+            return (-1, (_messageBuilder ?? MessageBuilder.Instance).BuildGameUpdateMessage(state.NextPlayerIx, action, bet_amount, state.ToDictionary()));
         }
 
-        private bool IsEveryoneAgreed(Dictionary<string, object> state)
+        private bool IsEveryoneAgreed(GameState state)
         {
             this.AgreeLogicBugCatch(state);
-            var players = ((Table)state["table"]).Seats.Players;
+            var players = state.Table.Seats.Players;
             Player nextPlayer = null;
             try
             {
-                var next_player_pos = ((Table)state["table"]).NextAskWaitingPlayerPosition((int)state["next_player"]);
+                var next_player_pos = state.Table.NextAskWaitingPlayerPosition(state.NextPlayerIx);
                 nextPlayer = players[next_player_pos];
             }
             catch
@@ -436,14 +422,14 @@ namespace NPokerEngine.Engine
             var everyone_agreed = players.Count == (from p in players
                                                     where this.IsAgreed((int)max_pay, p)
                                                     select p).ToList().Count;
-            var lonely_player = ((Table)state["table"]).Seats.ActivePlayersCount() == 1;
-            var no_need_to_ask = ((Table)state["table"]).Seats.AskWaitPlayersCount() == 1 && nextPlayer != null && nextPlayer.IsWaitingAsk() && nextPlayer.PaidSum() == max_pay;
+            var lonely_player = state.Table.Seats.ActivePlayersCount() == 1;
+            var no_need_to_ask = state.Table.Seats.AskWaitPlayersCount() == 1 && nextPlayer != null && nextPlayer.IsWaitingAsk() && nextPlayer.PaidSum() == max_pay;
             return everyone_agreed || lonely_player || no_need_to_ask;
         }
 
-        private void AgreeLogicBugCatch(Dictionary<string, object> state)
+        private void AgreeLogicBugCatch(GameState state)
         {
-            if (((Table)state["table"]).Seats.ActivePlayersCount() == 0)
+            if (state.Table.Seats.ActivePlayersCount() == 0)
             {
                 throw new Exception ("[__is_everyone_agreed] no-active-players!!");
             }
@@ -461,47 +447,38 @@ namespace NPokerEngine.Engine
                 }.Contains(player.PayInfo.Status);
         }
 
-        internal Dictionary<string, object> GenerateInitialState(int roundCount, int smallBlindAmount, Table table)
+        internal GameState GenerateInitialState(int roundCount, float smallBlindAmount, Table table)
         {
-            return new Dictionary<string, object> {
-                    {
-                        "round_count",
-                        roundCount},
-                    {
-                        "small_blind_amount",
-                        smallBlindAmount},
-                {
-                        "street",
-                        StreetType.PREFLOP},
-                    {
-                        "next_player",
-                        table.NextAskWaitingPlayerPosition(table.BigBlindPosition.Value)
-                },
-                    {
-                        "table",
-                        table}
+            return new GameState
+            {
+                RoundCount = roundCount,
+                SmallBlindAmount = smallBlindAmount,
+                Street = StreetType.PREFLOP,
+                NextPlayerIx = table.NextAskWaitingPlayerPosition(table.BigBlindPosition.Value),
+                Table = table
             };
         }
 
-        internal Dictionary<string, object> DeepCopyState(Dictionary<string, object> state)
+        internal GameState DeepCopyState(GameState state)
         {
-            var tableDeepcopy = ObjectUtils.DeepCopyByReflection(state["table"]);
-            return new Dictionary<string, object> {
-                    {
-                        "round_count",
-                        state["round_count"]},
-                    {
-                        "small_blind_amount",
-                        state["small_blind_amount"]},
-                    {
-                        "street",
-                        state["street"]},
-                    {
-                        "next_player",
-                        state["next_player"]},
-                    {
-                        "table",
-                        tableDeepcopy}};
+            return (GameState)state.Clone();
+            //var tableDeepcopy = ObjectUtils.DeepCopyByReflection(state["table"]);
+            //return new Dictionary<string, object> {
+            //        {
+            //            "round_count",
+            //            state["round_count"]},
+            //        {
+            //            "small_blind_amount",
+            //            state["small_blind_amount"]},
+            //        {
+            //            "street",
+            //            state["street"]},
+            //        {
+            //            "next_player",
+            //            state["next_player"]},
+            //        {
+            //            "table",
+            //            tableDeepcopy}};
         }
     }
 }

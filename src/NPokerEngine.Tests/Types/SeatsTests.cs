@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace NPokerEngine.Tests.Engine
+namespace NPokerEngine.Tests.Types
 {
     [TestClass]
     public class SeatsTests
@@ -61,7 +61,7 @@ namespace NPokerEngine.Tests.Engine
             var clone = (Seats)ObjectUtils.DeepCopyByReflection(_seats);
             clone.Players
                 .Select((p, ix) => new { ix, p })
-                .All(obj => object.ReferenceEquals(ObjectUtils.DeepCopyByReflection(obj.p), _seats.Players[obj.ix]))
+                .All(obj => ReferenceEquals(ObjectUtils.DeepCopyByReflection(obj.p), _seats.Players[obj.ix]))
                 .Should().BeFalse();
         }
 

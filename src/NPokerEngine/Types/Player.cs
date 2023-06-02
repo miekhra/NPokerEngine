@@ -87,7 +87,7 @@ namespace NPokerEngine.Types
             return this._payInfo.Status == PayInfo.PAY_TILL_END;
         }
 
-        public void AddActionHistory(ActionType kind, int chipAmount = 0, float addAmount = 0, float sbAmount = 0)
+        public void AddActionHistory(ActionType kind, float chipAmount = 0, float addAmount = 0, float sbAmount = 0)
         {
             ActionHistoryEntry history = null;
             if (kind == ActionType.FOLD)
@@ -198,31 +198,17 @@ namespace NPokerEngine.Types
         public object Clone()
         {
             var clone = new Player(_uuid, (int)_stack, Name);
-            clone.AddHoleCards(_holeCards.Select(c => Card.FromId(c.ToId())).ToArray());
+            clone._holeCards = _holeCards.Select(c => Card.FromId(c.ToId())).ToList();
             foreach (var h in _actionHistories)
             {
-                clone._actionHistories.Add(new ActionHistoryEntry
-                {
-                    ActionType = h.ActionType,
-                    Amount = h.Amount,
-                    AddAmount = h.AddAmount,
-                    Paid = h.Paid,
-                    Uuid = h.Uuid
-                });
+                clone._actionHistories.Add((ActionHistoryEntry)h.Clone());
             }
             foreach (var roundHistories in _roundActionHistories)
             {
                 clone._roundActionHistories[roundHistories.Key] = new List<ActionHistoryEntry>();
                 foreach (var h in roundHistories.Value)
                 {
-                    clone._roundActionHistories[roundHistories.Key].Add(new ActionHistoryEntry
-                    {
-                        ActionType = h.ActionType,
-                        Amount = h.Amount,
-                        AddAmount = h.AddAmount,
-                        Paid = h.Paid,
-                        Uuid = h.Uuid
-                    });
+                    clone._roundActionHistories[roundHistories.Key].Add((ActionHistoryEntry)h.Clone());
                 }
             }
             clone._payInfo._amount = _payInfo._amount;

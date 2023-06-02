@@ -1,7 +1,6 @@
 ﻿using FluentAssertions;
 using FluentAssertions.Execution;
 using Moq;
-using NPokerEngine.Engine;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -29,7 +28,7 @@ namespace NPokerEngine.Tests.Engine
         public void CollectBlindTest()
         {
             var (roundState, _) = StartRound();
-            var players = ((Table)roundState["table"]).Seats.Players;
+            var players = roundState.Table.Seats.Players;
             var sbAmount = 5;
 
             using (new AssertionScope())
@@ -51,7 +50,7 @@ namespace NPokerEngine.Tests.Engine
             var table = SetupTable();
 
             var (roundState, _) = RoundManager.Instance.StartNewRound(1, sbAmount, ante, table);
-            var players = ((Table)roundState["table"]).Seats.Players;
+            var players = roundState.Table.Seats.Players;
 
             using (new AssertionScope())
             {
@@ -78,7 +77,7 @@ namespace NPokerEngine.Tests.Engine
             table.Seats.Players[2].PayInfo._status = PayInfo.FOLDED;
 
             var (roundState, _) = RoundManager.Instance.StartNewRound(1, sbAmount, ante, table);
-            var players = ((Table)roundState["table"]).Seats.Players;
+            var players = roundState.Table.Seats.Players;
 
             using (new AssertionScope())
             {
@@ -90,7 +89,7 @@ namespace NPokerEngine.Tests.Engine
         public void DealHolecardsTest()
         {
             var (roundState, _) = StartRound();
-            var players = ((Table)roundState["table"]).Seats.Players;
+            var players = roundState.Table.Seats.Players;
 
             using (new AssertionScope())
             {
@@ -130,9 +129,9 @@ namespace NPokerEngine.Tests.Engine
 
             using (new AssertionScope())
             {
-                state["next_player"].Should().Be(2);
-                ((Table)state["table"]).Seats.Players[0].ActionHistories[0].ActionType.Should().Be(ActionType.SMALL_BLIND);
-                ((Table)state["table"]).Seats.Players[1].ActionHistories[0].ActionType.Should().Be(ActionType.BIG_BLIND);
+                state.NextPlayerIx.Should().Be(2);
+                state.Table.Seats.Players[0].ActionHistories[0].ActionType.Should().Be(ActionType.SMALL_BLIND);
+                state.Table.Seats.Players[1].ActionHistories[0].ActionType.Should().Be(ActionType.BIG_BLIND);
             }
         }
 
@@ -167,8 +166,8 @@ namespace NPokerEngine.Tests.Engine
 
             using (new AssertionScope())
             {
-                state["next_player"].Should().Be(0);
-                ((Table)state["table"]).Seats.Players[2].ActionHistories[0].ActionType.Should().Be(ActionType.CALL);
+                state.NextPlayerIx.Should().Be(0);
+                state.Table.Seats.Players[2].ActionHistories[0].ActionType.Should().Be(ActionType.CALL);
             }
         }
 
@@ -180,8 +179,8 @@ namespace NPokerEngine.Tests.Engine
 
             using (new AssertionScope())
             {
-                state["next_player"].Should().Be(0);
-                ((Table)state["table"]).Seats.Players[2].ActionHistories[0].ActionType.Should().Be(ActionType.RAISE);
+                state.NextPlayerIx.Should().Be(0);
+                state.Table.Seats.Players[2].ActionHistories[0].ActionType.Should().Be(ActionType.RAISE);
             }
         }
 
@@ -218,14 +217,14 @@ namespace NPokerEngine.Tests.Engine
             (state, _) = RoundManager.Instance.ApplyAction(state, "call", 10);
             (state, _) = RoundManager.Instance.ApplyAction(state, "call", 10);
 
-            Player fetchPlayer(string uuid) => ((Table)state["table"]).Seats.Players.Single(p => p.Uuid == uuid);
+            Player fetchPlayer(string uuid) => state.Table.Seats.Players.Single(p => p.Uuid == uuid);
 
             using (new AssertionScope())
             {
-                state["street"].Should().Be((byte)StreetType.FLOP);
-                state["next_player"].Should().Be(0);
-                ((Table)state["table"]).CommunityCards.Should().BeEquivalentTo(Enumerable.Range(7, 3).Select(Card.FromId));
-                ((Table)state["table"]).Seats.Players.All(p => !p.ActionHistories.Any()).Should().BeTrue();
+                state.Street.Should().Be(StreetType.FLOP);
+                state.NextPlayerIx.Should().Be(0);
+                state.Table.CommunityCards.Should().BeEquivalentTo(Enumerable.Range(7, 3).Select(Card.FromId));
+                state.Table.Seats.Players.All(p => !p.ActionHistories.Any()).Should().BeTrue();
                 fetchPlayer("uuid0").RoundActionHistories[StreetType.PREFLOP].Count.Should().Be(2);
                 fetchPlayer("uuid1").RoundActionHistories[StreetType.PREFLOP].Count.Should().Be(2);
                 fetchPlayer("uuid2").RoundActionHistories[StreetType.PREFLOP].Count.Should().Be(1);
@@ -243,14 +242,14 @@ namespace NPokerEngine.Tests.Engine
             (state, _) = RoundManager.Instance.ApplyAction(state, "call", 0);
             (state, var msgs) = RoundManager.Instance.ApplyAction(state, "call", 0);
 
-            Player fetchPlayer(string uuid) => ((Table)state["table"]).Seats.Players.Single(p => p.Uuid == uuid);
+            Player fetchPlayer(string uuid) => state.Table.Seats.Players.Single(p => p.Uuid == uuid);
 
             using (new AssertionScope())
             {
-                state["street"].Should().Be((byte)StreetType.TURN);
-                ((Table)state["table"]).CommunityCards.Should().BeEquivalentTo(Enumerable.Range(7, 4).Select(Card.FromId));
+                state.Street.Should().Be(StreetType.TURN);
+                state.Table.CommunityCards.Should().BeEquivalentTo(Enumerable.Range(7, 4).Select(Card.FromId));
                 ((IList)msgs).Count.Should().Be(3);
-                ((Table)state["table"]).Seats.Players.All(p => !p.ActionHistories.Any()).Should().BeTrue();
+                state.Table.Seats.Players.All(p => !p.ActionHistories.Any()).Should().BeTrue();
                 fetchPlayer("uuid0").RoundActionHistories[StreetType.PREFLOP].Count.Should().Be(2);
                 fetchPlayer("uuid1").RoundActionHistories[StreetType.PREFLOP].Count.Should().Be(2);
                 fetchPlayer("uuid2").RoundActionHistories[StreetType.PREFLOP].Count.Should().Be(1);
@@ -273,12 +272,12 @@ namespace NPokerEngine.Tests.Engine
             (state, _) = RoundManager.Instance.ApplyAction(state, "call", 0);
             (state, var msgs) = RoundManager.Instance.ApplyAction(state, "call", 0);
 
-            Player fetchPlayer(string uuid) => ((Table)state["table"]).Seats.Players.Single(p => p.Uuid == uuid);
+            Player fetchPlayer(string uuid) => state.Table.Seats.Players.Single(p => p.Uuid == uuid);
 
             using (new AssertionScope())
             {
-                state["street"].Should().Be((byte)StreetType.RIVER);
-                ((Table)state["table"]).CommunityCards.Should().BeEquivalentTo(Enumerable.Range(7, 5).Select(Card.FromId));
+                state.Street.Should().Be(StreetType.RIVER);
+                state.Table.CommunityCards.Should().BeEquivalentTo(Enumerable.Range(7, 5).Select(Card.FromId));
                 ((IList)msgs).Count.Should().Be(3);
                 fetchPlayer("uuid0").RoundActionHistories[StreetType.PREFLOP].Count.Should().Be(2);
                 fetchPlayer("uuid1").RoundActionHistories[StreetType.PREFLOP].Count.Should().Be(2);
@@ -322,11 +321,11 @@ namespace NPokerEngine.Tests.Engine
 
             using (new AssertionScope())
             {
-                state["street"].Should().Be((byte)StreetType.FINISHED);
-                ((Table)state["table"]).Seats.Players[0].Stack.Should().Be(110);
-                ((Table)state["table"]).Seats.Players[1].Stack.Should().Be(90);
-                ((Table)state["table"]).Seats.Players[02].Stack.Should().Be(100);
-                ((Table)state["table"]).Seats.Players.Should().AllSatisfy(p => p.ActionHistories.Should().BeEmpty());
+                state.Street.Should().Be(StreetType.FINISHED);
+                state.Table.Seats.Players[0].Stack.Should().Be(110);
+                state.Table.Seats.Players[1].Stack.Should().Be(90);
+                state.Table.Seats.Players[02].Stack.Should().Be(100);
+                state.Table.Seats.Players.Should().AllSatisfy(p => p.ActionHistories.Should().BeEmpty());
 
             }
         }
@@ -398,11 +397,11 @@ namespace NPokerEngine.Tests.Engine
 
             using (new AssertionScope())
             {
-                ((Table)state["table"]).Deck.Size.Should().Be(52);
-                ((Table)state["table"]).CommunityCards.Should().BeNullOrEmpty();
-                ((Table)state["table"]).Seats.Players[0].HoleCards.Should().BeNullOrEmpty();
-                ((Table)state["table"]).Seats.Players[0].ActionHistories.Should().BeNullOrEmpty();
-                ((Table)state["table"]).Seats.Players[0].PayInfo.Status.Should().Be(PayInfo.PAY_TILL_END);
+                state.Table.Deck.Size.Should().Be(52);
+                state.Table.CommunityCards.Should().BeNullOrEmpty();
+                state.Table.Seats.Players[0].HoleCards.Should().BeNullOrEmpty();
+                state.Table.Seats.Players[0].ActionHistories.Should().BeNullOrEmpty();
+                state.Table.Seats.Players[0].PayInfo.Status.Should().Be(PayInfo.PAY_TILL_END);
             }
         }
 
@@ -415,7 +414,7 @@ namespace NPokerEngine.Tests.Engine
 
             using (new AssertionScope())
             {
-                state["street"].Should().Be((byte)StreetType.FINISHED);
+                state.Street.Should().Be(StreetType.FINISHED);
                 ((List<object>)msgs).Where(m => m is KeyValuePair<string, object>)
                     .Select(m => (KeyValuePair<string, object>)m)
                     .Where(m => m.Key == "message")
@@ -455,23 +454,23 @@ namespace NPokerEngine.Tests.Engine
             (state, _) = RoundManager.Instance.ApplyAction(state, "raise", 50);
             (state, _) = RoundManager.Instance.ApplyAction(state, "call", 50);
             (state, _) = RoundManager.Instance.ApplyAction(state, "fold", 0);
-            var stacksAfterRound1 = ((Table)state["table"]).Seats.Players.Select(p => p.Stack).ToList();
+            var stacksAfterRound1 = state.Table.Seats.Players.Select(p => p.Stack).ToList();
 
             // Round 1
-            ((Table)state["table"]).ShiftDealerButton();
-            ((Table)state["table"]).SetBlindPositions(1, 2);
-            (state, _) = RoundManager.Instance.StartNewRound(2, 5, 0, ((Table)state["table"]));
+            state.Table.ShiftDealerButton();
+            state.Table.SetBlindPositions(1, 2);
+            (state, _) = RoundManager.Instance.StartNewRound(2, 5, 0, state.Table);
             (state, _) = RoundManager.Instance.ApplyAction(state, "raise", 40);
             (state, _) = RoundManager.Instance.ApplyAction(state, "call", 40);
             (state, _) = RoundManager.Instance.ApplyAction(state, "raise", 70);
             (state, var msgs) = RoundManager.Instance.ApplyAction(state, "call", 70);
-            var stacksAfterRound2 = ((Table)state["table"]).Seats.Players.Select(p => p.Stack).ToList();
+            var stacksAfterRound2 = state.Table.Seats.Players.Select(p => p.Stack).ToList();
 
             using (new AssertionScope())
             {
                 stacksAfterRound1.Should().BeEquivalentTo(new List<float> { 95, 40, 165 });
                 stacksAfterRound2.Should().BeEquivalentTo(new List<float> { 25, 0, 95 });
-                state["street"].Should().Be((byte)StreetType.FLOP);
+                state.Street.Should().Be(StreetType.FLOP);
                 ((KeyValuePair<string, object>)((List<object>)msgs).Last()).Key.Should().Be("uuid2");
             }
         }
@@ -489,11 +488,11 @@ namespace NPokerEngine.Tests.Engine
             (state, _) = RoundManager.Instance.ApplyAction(state, "raise", 50);
             (state, _) = RoundManager.Instance.ApplyAction(state, "call", 50);
             (state, _) = RoundManager.Instance.ApplyAction(state, "fold", 0);
-            var stacksAfterRound1 = ((Table)state["table"]).Seats.Players.Select(p => p.Stack).ToList();
+            var stacksAfterRound1 = state.Table.Seats.Players.Select(p => p.Stack).ToList();
 
-            //// Round 2
-            //((Table)state["table"]).ShiftDealerButton();
-            //(state, _) = RoundManager.Instance.StartNewRound(2, 5, 0, ((Table)state["table"]));
+            // Round 2
+            //state.Table.ShiftDealerButton();
+            //(state, _) = RoundManager.Instance.StartNewRound(2, 5, 0, state.Table);
             //(state, _) = RoundManager.Instance.ApplyAction(state, "raise", 40);
             //(state, _) = RoundManager.Instance.ApplyAction(state, "call", 40);
             //(state, _) = RoundManager.Instance.ApplyAction(state, "raise", 70);
@@ -520,7 +519,7 @@ namespace NPokerEngine.Tests.Engine
 
             using (new AssertionScope())
             {
-                state["street"].Should().Be(StreetType.PREFLOP);
+                state.Street.Should().Be(StreetType.PREFLOP);
                 ((ValueTuple<string, Dictionary<string, object>>)((List<object>)msgs).Last()).Item1.Should().Be("uuid1");
             }
         }
@@ -554,7 +553,7 @@ namespace NPokerEngine.Tests.Engine
 
             using (new AssertionScope())
             {
-                state["street"].Should().Be((byte)StreetType.FINISHED);
+                state.Street.Should().Be(StreetType.FINISHED);
             }
         }
 
@@ -563,15 +562,15 @@ namespace NPokerEngine.Tests.Engine
         public void AddAmountCalculationWhenRaiseOnAnteTest()
         {
             var table = this.SetupTable();
-            Func<Dictionary<string, object>, object> potAmount = state 
-                => ((Dictionary<string, object>)(GameEvaluator.Instance.CreatePot(((Table)state["table"]).Seats.Players)[0]))["amount"];
+            Func<GameState, object> potAmount = state 
+                => ((Dictionary<string, object>)(GameEvaluator.Instance.CreatePot(state.Table.Seats.Players)[0]))["amount"];
             
             var (state, _) = RoundManager.Instance.StartNewRound(1, 10, 5, table);
 
             using (new AssertionScope())
             {
                 potAmount(state).Should().Be(45);
-                ((Table)state["table"]).Seats.Players.Select(p => p.Stack).Should().BeEquivalentTo(new List<float> { 85, 75, 95 });
+                state.Table.Seats.Players.Select(p => p.Stack).Should().BeEquivalentTo(new List<float> { 85, 75, 95 });
 
                 var (folded_state, _) = RoundManager.Instance.ApplyAction(state, "fold", 0);
                 var (called_state, _) = RoundManager.Instance.ApplyAction(state, "call", 20);
@@ -580,7 +579,7 @@ namespace NPokerEngine.Tests.Engine
                 //((Table)state["table"]).Seats.Players.Select(p => p.Stack).Should().BeEquivalentTo(new List<float> { 85, 75, 95 });
                 (called_state, _) = RoundManager.Instance.ApplyAction(state, "call", 20);
 
-                ((Table)called_state["table"]).Seats.Players[2].ActionHistories.Last().Paid.Should().Be(20);
+                called_state.Table.Seats.Players[2].ActionHistories.Last().Paid.Should().Be(20);
             }
         }
         //  def test_add_amount_calculationl_when_raise_on_ante(self) :
@@ -613,14 +612,14 @@ namespace NPokerEngine.Tests.Engine
 
             using (new AssertionScope())
             {
-                original["round_count"].Should().Be(copy["round_count"]);
-                original["small_blind_amount"].Should().Be(copy["small_blind_amount"]);
-                original["street"].Should().Be(copy["street"]);
-                original["next_player"].Should().Be(copy["next_player"]);
+                original.RoundCount.Should().Be(copy.RoundCount);
+                original.SmallBlindAmount.Should().Be(copy.SmallBlindAmount);
+                original.Street.Should().Be(copy.Street);
+                original.NextPlayerIx.Should().Be(copy.NextPlayerIx);
             }
         }
 
-        private (Dictionary<string, object> roundState, List<(string, object)> messages) StartRound()
+        private (GameState roundState, List<(string, object)> messages) StartRound()
         {
             var table = SetupTable();
             return RoundManager.Instance.StartNewRound(

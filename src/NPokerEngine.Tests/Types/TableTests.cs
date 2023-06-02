@@ -1,6 +1,5 @@
 ﻿using FluentAssertions;
 using FluentAssertions.Execution;
-using NPokerEngine.Engine;
 using NPokerEngine.Utils;
 using System;
 using System.Collections.Generic;
@@ -9,7 +8,7 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace NPokerEngine.Tests.Engine
+namespace NPokerEngine.Tests.Types
 {
     [TestClass]
     public class TableTests
@@ -130,8 +129,8 @@ namespace NPokerEngine.Tests.Engine
             _table.Deck.DrawCards(3).ForEach(card => _table.AddCommunityCard(card));
             _table.ShiftDealerButton();
             _table.SetBlindPositions(1, 2);
-            
-            var restoredTable = (Table)ObjectUtils.DeepCopyByReflection(_table) ;
+
+            var restoredTable = (Table)ObjectUtils.DeepCopyByReflection(_table);
             using (new AssertionScope())
             {
                 restoredTable.DealerButton.Should().Be(_table.DealerButton);
@@ -147,7 +146,7 @@ namespace NPokerEngine.Tests.Engine
         {
             _table = new Table();
             _table.Deck.DrawCards(5).ForEach(card => _table.AddCommunityCard(card));
-            
+
         }
 
         private void SetupPlayer()

@@ -82,7 +82,7 @@ namespace NPokerEngine.Engine
             var players = ((Table)state["table"]).Seats.Players;
             var player = players[playerPos];
             var holeCards = DataEncoder.Instance.EncodePlayer(player, holecards: true)["hole_card"];
-            var validActions = ActionChecker.Instance.LegalActions(players, playerPos, (int)state["small_blind_amount"]);
+            var validActions = ActionChecker.Instance.LegalActions(players, playerPos, Convert.ToInt32(state["small_blind_amount"]));
             var message = new Dictionary<object, object> {
                     {
                         "message_type",

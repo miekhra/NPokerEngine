@@ -5,7 +5,7 @@ using System.Text;
 
 namespace NPokerEngine.Types
 {
-    public class Seats
+    public class Seats : ICloneable
     {
         private readonly List<Player> _players;
 
@@ -26,5 +26,11 @@ namespace NPokerEngine.Types
         public int AskWaitPlayersCount()
             => _players.Where(p => p.IsWaitingAsk()).Count();
 
+        public object Clone()
+        {
+            var clone = new Seats();
+            _players.ForEach(p => clone.Sitdown((Player)p.Clone()));
+            return clone;
+        }
     }
 }

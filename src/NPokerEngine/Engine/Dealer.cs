@@ -89,8 +89,8 @@ namespace NPokerEngine.Engine
             var msgs = (IEnumerable<Tuple<object, IDictionary>>)_tup_1.Item2;
             while (true)
             {
-                this.MessageCheck(msgs, (StreetType)state["street"]);
-                if ((StreetType)state["street"] != StreetType.FINISHED)
+                this.MessageCheck(msgs, state.Street);
+                if (state.Street != StreetType.FINISHED)
                 {
                     // continue the round
                     var _tup_2 = this.PublishMessages(msgs);
@@ -107,7 +107,7 @@ namespace NPokerEngine.Engine
                     break;
                 }
             }
-            return (Table)state["table"];
+            return (Table)state.Table;
         }
 
         public void SetSmallBlindAmount(int amount)

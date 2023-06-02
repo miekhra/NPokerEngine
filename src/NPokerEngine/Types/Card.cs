@@ -5,7 +5,7 @@ using System.Linq;
 
 namespace NPokerEngine.Types
 {
-    public class Card : IEquatable<Card>
+    public class Card : ICloneable, IEquatable<Card>
     {
         public const byte CLUB = 2;
         public const byte DIAMOND = 4;
@@ -89,6 +89,11 @@ namespace NPokerEngine.Types
         public override string ToString()
         {
             return $"{SUIT_MAP[this._suit]}{RANK_MAP[this._rank]}";
+        }
+
+        public object Clone()
+        {
+            return Card.FromId(this.ToId());
         }
     }
 }

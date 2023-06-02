@@ -1,7 +1,6 @@
 ﻿using FluentAssertions;
 using FluentAssertions.Execution;
 using Microsoft.VisualStudio.TestPlatform.CommunicationUtilities;
-using NPokerEngine.Engine;
 using System;
 using System.Collections;
 using System.Collections.Generic;

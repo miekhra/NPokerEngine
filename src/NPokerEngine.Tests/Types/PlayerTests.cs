@@ -13,7 +13,7 @@ using System.Text;
 using System.Threading.Tasks;
 using static System.Collections.Specialized.BitVector32;
 
-namespace NPokerEngine.Tests.Engine
+namespace NPokerEngine.Tests.Types
 {
     [TestClass]
     public class PlayerTests
@@ -49,7 +49,7 @@ namespace NPokerEngine.Tests.Engine
         [TestMethod]
         public void AddTooManyHoleCardsTest()
         {
-            Action act = () => _player.AddHoleCards(Enumerable.Range(1,3).Select(Card.FromId).ToArray());
+            Action act = () => _player.AddHoleCards(Enumerable.Range(1, 3).Select(Card.FromId).ToArray());
 
             act.Should().Throw<ArgumentException>();
         }
@@ -333,7 +333,7 @@ namespace NPokerEngine.Tests.Engine
         private Player SetupPlayerForSerialization()
         {
             var player = new Player("uuid", 50, "hoge");
-            player.AddHoleCards(Enumerable.Range(1,2).Select(Card.FromId).ToArray());
+            player.AddHoleCards(Enumerable.Range(1, 2).Select(Card.FromId).ToArray());
             player.AddActionHistory(ActionType.SMALL_BLIND, sbAmount: 5);
             player.SaveStreetActionHistories(StreetType.PREFLOP);
             player.AddActionHistory(ActionType.CALL, 10);
