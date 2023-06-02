@@ -36,7 +36,7 @@ namespace NPokerEngine.Tests.Engine
 
             using (new AssertionScope())
             {
-                rankInfo.HandStrength.Should().Be("HIGHCARD");
+                rankInfo.HandStrength.Should().Be(HandRankType.HIGHCARD);
                 //((IDictionary)rankInfo["hand"])["strength"].Should().Be("HIGHCARD");
                 rankInfo.HandHigh.Should().Be(9);
                 //((IDictionary)rankInfo["hand"])["high"].Should().Be(9);
@@ -71,7 +71,7 @@ namespace NPokerEngine.Tests.Engine
 
             using (new AssertionScope())
             {
-                HandEvaluator.Instance.MaskHandStrength(bit).Should().Be(HandEvaluator.HIGHCARD);
+                HandEvaluator.Instance.MaskHandStrength(bit).Should().Be((int)HandRankType.HIGHCARD);
                 HandEvaluator.Instance.MaskHandHighRank(bit).Should().Be(9);
                 HandEvaluator.Instance.MaskHandLowRank(bit).Should().Be(2);
                 HandEvaluator.Instance.MaskHoleHighRank(bit).Should().Be(9);
@@ -101,7 +101,7 @@ namespace NPokerEngine.Tests.Engine
 
             using (new AssertionScope())
             {
-                HandEvaluator.Instance.MaskHandStrength(bit).Should().Be(HandEvaluator.ONEPAIR);
+                HandEvaluator.Instance.MaskHandStrength(bit).Should().Be((int)HandRankType.ONEPAIR);
                 HandEvaluator.Instance.MaskHandHighRank(bit).Should().Be(3);
                 HandEvaluator.Instance.MaskHandLowRank(bit).Should().Be(0);
                 HandEvaluator.Instance.MaskHoleHighRank(bit).Should().Be(9);
@@ -131,7 +131,7 @@ namespace NPokerEngine.Tests.Engine
 
             using (new AssertionScope())
             {
-                HandEvaluator.Instance.MaskHandStrength(bit).Should().Be(HandEvaluator.TWOPAIR);
+                HandEvaluator.Instance.MaskHandStrength(bit).Should().Be((int)HandRankType.TWOPAIR);
                 HandEvaluator.Instance.MaskHandHighRank(bit).Should().Be(9);
                 HandEvaluator.Instance.MaskHandLowRank(bit).Should().Be(3);
             }
@@ -159,7 +159,7 @@ namespace NPokerEngine.Tests.Engine
 
             using (new AssertionScope())
             {
-                HandEvaluator.Instance.MaskHandStrength(bit).Should().Be(HandEvaluator.TWOPAIR);
+                HandEvaluator.Instance.MaskHandStrength(bit).Should().Be((int)HandRankType.TWOPAIR);
                 HandEvaluator.Instance.MaskHandHighRank(bit).Should().Be(8);
                 HandEvaluator.Instance.MaskHandLowRank(bit).Should().Be(7);
             }
@@ -187,7 +187,7 @@ namespace NPokerEngine.Tests.Engine
 
             using (new AssertionScope())
             {
-                HandEvaluator.Instance.MaskHandStrength(bit).Should().Be(HandEvaluator.THREECARD);
+                HandEvaluator.Instance.MaskHandStrength(bit).Should().Be((int)HandRankType.THREECARD);
                 HandEvaluator.Instance.MaskHandHighRank(bit).Should().Be(3);
                 HandEvaluator.Instance.MaskHandLowRank(bit).Should().Be(0);
                 HandEvaluator.Instance.MaskHoleHighRank(bit).Should().Be(9);
@@ -217,7 +217,7 @@ namespace NPokerEngine.Tests.Engine
 
             using (new AssertionScope())
             {
-                HandEvaluator.Instance.MaskHandStrength(bit).Should().Be(HandEvaluator.STRAIGHT);
+                HandEvaluator.Instance.MaskHandStrength(bit).Should().Be((int)HandRankType.STRAIGHT);
                 HandEvaluator.Instance.MaskHandHighRank(bit).Should().Be(3);
                 HandEvaluator.Instance.MaskHandLowRank(bit).Should().Be(0);
                 HandEvaluator.Instance.MaskHoleHighRank(bit).Should().Be(5);
@@ -247,7 +247,7 @@ namespace NPokerEngine.Tests.Engine
 
             using (new AssertionScope())
             {
-                HandEvaluator.Instance.MaskHandStrength(bit).Should().Be(HandEvaluator.FLASH);
+                HandEvaluator.Instance.MaskHandStrength(bit).Should().Be((int)HandRankType.FLASH);
                 HandEvaluator.Instance.MaskHandHighRank(bit).Should().Be(6);
                 HandEvaluator.Instance.MaskHandLowRank(bit).Should().Be(0);
                 HandEvaluator.Instance.MaskHoleHighRank(bit).Should().Be(5);
@@ -277,7 +277,7 @@ namespace NPokerEngine.Tests.Engine
 
             using (new AssertionScope())
             {
-                HandEvaluator.Instance.MaskHandStrength(bit).Should().Be(HandEvaluator.FULLHOUSE);
+                HandEvaluator.Instance.MaskHandStrength(bit).Should().Be((int)HandRankType.FULLHOUSE);
                 HandEvaluator.Instance.MaskHandHighRank(bit).Should().Be(4);
                 HandEvaluator.Instance.MaskHandLowRank(bit).Should().Be(5);
                 HandEvaluator.Instance.MaskHoleHighRank(bit).Should().Be(5);
@@ -307,7 +307,7 @@ namespace NPokerEngine.Tests.Engine
 
             using (new AssertionScope())
             {
-                HandEvaluator.Instance.MaskHandStrength(bit).Should().Be(HandEvaluator.FULLHOUSE);
+                HandEvaluator.Instance.MaskHandStrength(bit).Should().Be((int)HandRankType.FULLHOUSE);
                 HandEvaluator.Instance.MaskHandHighRank(bit).Should().Be(7);
                 HandEvaluator.Instance.MaskHandLowRank(bit).Should().Be(3);
                 HandEvaluator.Instance.MaskHoleHighRank(bit).Should().Be(8);
@@ -337,7 +337,7 @@ namespace NPokerEngine.Tests.Engine
 
             using (new AssertionScope())
             {
-                HandEvaluator.Instance.MaskHandStrength(bit).Should().Be(HandEvaluator.FOURCARD);
+                HandEvaluator.Instance.MaskHandStrength(bit).Should().Be((int)HandRankType.FOURCARD);
                 HandEvaluator.Instance.MaskHandHighRank(bit).Should().Be(3);
                 HandEvaluator.Instance.MaskHandLowRank(bit).Should().Be(0);
                 HandEvaluator.Instance.MaskHoleHighRank(bit).Should().Be(8);
@@ -367,7 +367,7 @@ namespace NPokerEngine.Tests.Engine
 
             using (new AssertionScope())
             {
-                HandEvaluator.Instance.MaskHandStrength(bit).Should().Be(HandEvaluator.STRAIGHTFLASH);
+                HandEvaluator.Instance.MaskHandStrength(bit).Should().Be((int)HandRankType.STRAIGHTFLASH);
                 HandEvaluator.Instance.MaskHandHighRank(bit).Should().Be(10);
                 HandEvaluator.Instance.MaskHandLowRank(bit).Should().Be(0);
                 HandEvaluator.Instance.MaskHoleHighRank(bit).Should().Be(14);

@@ -8,29 +8,6 @@ namespace NPokerEngine.Engine
 {
     public class HandEvaluator : IHandEvaluator
     {
-        public const int HIGHCARD = 0;
-        public const int ONEPAIR = 1 << 8;
-        public const int TWOPAIR = 1 << 9;
-        public const int THREECARD = 1 << 10;
-        public const int STRAIGHT = 1 << 11;
-        public const int FLASH = 1 << 12;
-        public const int FULLHOUSE = 1 << 13;
-        public const int FOURCARD = 1 << 14;
-        public const int STRAIGHTFLASH = 1 << 15;
-
-        public static Dictionary<int, string> HAND_STRENGTH_MAP = new Dictionary<int, string>
-        {
-            { HIGHCARD, "HIGHCARD" },
-            { ONEPAIR, "ONEPAIR" },
-            { TWOPAIR, "TWOPAIR" },
-            { THREECARD, "THREECARD" },
-            { STRAIGHT, "STRAIGHT" },
-            { FLASH, "FLASH" },
-            { FULLHOUSE, "FULLHOUSE" },
-            { FOURCARD, "FOURCARD" },
-            { STRAIGHTFLASH, "STRAIGHTFLASH" }
-        };
-
         private static HandEvaluator _instance;
 
         private HandEvaluator() 
@@ -55,7 +32,7 @@ namespace NPokerEngine.Engine
         {
             var hand = _evalFunc == null ? this.EvalHand(hole, community) : _evalFunc(hole, community);
             var row_strength = this.MaskHandStrength(hand);
-            var strength = HAND_STRENGTH_MAP[row_strength];
+            var strength = (HandRankType)row_strength;
             var hand_high = this.MaskHandHighRank(hand);
             var hand_low = this.MaskHandLowRank(hand);
             var hole_high = this.MaskHoleHighRank(hand);
@@ -68,28 +45,6 @@ namespace NPokerEngine.Engine
                 HoleHigh = hole_high,
                 HoleLow = hole_low
             };
-            //return new Dictionary<string, object> {
-            //        {
-            //            "hand",
-            //            new Dictionary<object, object> {
-            //                {
-            //                    "strength",
-            //                    strength},
-            //                {
-            //                    "high",
-            //                    hand_high},
-            //                {
-            //                    "low",
-            //                    hand_low}}},
-            //        {
-            //            "hole",
-            //            new Dictionary<object, object> {
-            //                {
-            //                    "high",
-            //                    hole_high},
-            //                {
-            //                    "low",
-            //                    hole_low}}}};
         }
 
         public int EvalHand(IEnumerable<Card> hole, IEnumerable<Card> community)
@@ -118,35 +73,35 @@ namespace NPokerEngine.Engine
             var cards = hole.Concat(community).ToList();
             if (this.TryEvalStraightFlash(cards, out var straightFlashResult))
             {
-                return STRAIGHTFLASH | straightFlashResult;
+                return (int)HandRankType.STRAIGHTFLASH | straightFlashResult;
             }
             if (this.TryEvalFourCards(cards, out var fourCardsResult))
             {
-                return FOURCARD | fourCardsResult;
+                return (int)HandRankType.FOURCARD | fourCardsResult;
             }
             if (this.TryEvalFullHouse(cards, out var fullHouseResult))
             {
-                return FULLHOUSE | fullHouseResult;
+                return (int)HandRankType.FULLHOUSE | fullHouseResult;
             }
             if (this.TryEvalFlash(cards, out var flashResult))
             {
-                return FLASH | flashResult;
+                return (int)HandRankType.FLASH | flashResult;
             }
             if (this.TryEvalStraight(cards, out var straightResult))
             {
-                return STRAIGHT | straightResult;
+                return (int)HandRankType.STRAIGHT | straightResult;
             }
             if (this.TryEvalThreeCards(cards, out var threeCardsResult))
             {
-                return THREECARD | threeCardsResult;
+                return (int)HandRankType.THREECARD | threeCardsResult;
             }
             if (this.TryEvalTwoPairs(cards, out var twoPairsResult))
             {
-                return TWOPAIR | twoPairsResult;
+                return (int)HandRankType.TWOPAIR | twoPairsResult;
             }
             if (this.TryEvalOnePair(cards, out var onePairResult))
             {
-                return ONEPAIR | onePairResult;
+                return (int)HandRankType.ONEPAIR | onePairResult;
             }
             return EvalHoleCard(hole);
         }

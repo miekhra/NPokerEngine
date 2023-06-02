@@ -68,8 +68,8 @@ namespace NPokerEngine.Tests.Engine
             using (new AssertionScope())
             {
                 judgeResult.winners.Count.Should().Be(2);
-                judgeResult.handInfoMap.ElementAt(0).Value.HandStrength.Should().Be("HIGHCARD");
-                judgeResult.handInfoMap.ElementAt(1).Value.HandStrength.Should().Be("HIGHCARD");
+                judgeResult.handInfoMap.ElementAt(0).Value.HandStrength.Should().Be(HandRankType.HIGHCARD);
+                judgeResult.handInfoMap.ElementAt(1).Value.HandStrength.Should().Be(HandRankType.HIGHCARD);
                 //((IDictionary)(((IDictionary)(judgeResult.handInfo[0]["hand"]))["hand"]))["strength"].Should().Be("HIGHCARD");
                 //((IDictionary)(((IDictionary)(judgeResult.handInfo[1]["hand"]))["hand"]))["strength"].Should().Be("HIGHCARD");
                 judgeResult.prizeMap[0].Should().Be(7.5f);
