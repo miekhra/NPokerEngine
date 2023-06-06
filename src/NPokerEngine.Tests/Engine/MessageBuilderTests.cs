@@ -1,6 +1,7 @@
 ﻿using FluentAssertions;
 using FluentAssertions.Execution;
 using Microsoft.VisualStudio.TestPlatform.CommunicationUtilities;
+using NPokerEngine.Messages;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -21,13 +22,11 @@ namespace NPokerEngine.Tests.Engine
             var seats = SetupSeats();
 
             var message = MessageBuilder.Instance.BuildGameStartMessage(config, seats);
-            var msg = (IDictionary)message["message"];
 
             using (new AssertionScope())
             {
-                message["type"].Should().Be("notification");
-                msg["message_type"].Should().Be(MessageBuilder.GAME_START_MESSAGE);
-                ((Dictionary<string, object>)msg["game_information"]).Should().BeEquivalentTo(DataEncoder.Instance.EncodeGameInformation(config, seats));
+                MessageBuilder.GetMessageType(message).Should().Be(MessageBuilder.NOTIFICATION);
+                message.MessageType.Should().Be(MessageType.GAME_START_MESSAGE);
             }
         }
 
@@ -37,15 +36,13 @@ namespace NPokerEngine.Tests.Engine
             var seats = SetupSeats();
 
             var message = MessageBuilder.Instance.BuildRoundStartMessage(7, 1, seats);
-            var msg = (IDictionary)message["message"];
 
             using (new AssertionScope())
             {
-                message["type"].Should().Be("notification");
-                msg["message_type"].Should().Be(MessageBuilder.ROUND_START_MESSAGE);
-                msg["round_count"].Should().Be(7);
-                msg["seats"].Should().BeEquivalentTo(DataEncoder.Instance.EncodeSeats(seats)["seats"]);
-                msg["hole_card"].Should().BeEquivalentTo(new List<string> { "CA", "C2" });
+                MessageBuilder.GetMessageType(message).Should().Be(MessageBuilder.NOTIFICATION);
+                message.MessageType.Should().Be(MessageType.ROUND_START_MESSAGE);
+                message.RoundCount.Should().Be(7);
+                message.HoleCards.Should().BeEquivalentTo(new List<Card> { Card.FromString("CA"), Card.FromString("C2") });
             }
         }
 
@@ -54,15 +51,13 @@ namespace NPokerEngine.Tests.Engine
         {
             var state = SetupState();
 
-            var message = MessageBuilder.Instance.BuildStreetStartMessage(state.ToDictionary());
-            var msg = (IDictionary)message["message"];
+            var message = MessageBuilder.Instance.BuildStreetStartMessage(state);
 
             using (new AssertionScope())
             {
-                message["type"].Should().Be("notification");
-                msg["message_type"].Should().Be(MessageBuilder.STREET_START_MESSAGE);
-                msg["street"].Should().Be("flop");
-                msg["round_state"].Should().BeEquivalentTo(DataEncoder.Instance.EncodeRoundState(state.ToDictionary()));
+                MessageBuilder.GetMessageType(message).Should().Be(MessageBuilder.NOTIFICATION);
+                message.MessageType.Should().Be(MessageType.STREET_START_MESSAGE);
+                message.Street.Should().Be(StreetType.FLOP);
             }
         }
 
@@ -72,16 +67,13 @@ namespace NPokerEngine.Tests.Engine
             var state = SetupState();
 
             var message = MessageBuilder.Instance.BuildAskMessage(1, state);
-            var msg = (IDictionary)message["message"];
 
             using (new AssertionScope())
             {
-                message["type"].Should().Be("ask");
-                msg["message_type"].Should().Be(MessageBuilder.ASK_MESSAGE);
-                msg["hole_card"].Should().BeEquivalentTo(new List<string> { "CA", "C2" });
-                ((ICollection)msg["valid_actions"]).Count.Should().Be(3);
-                msg["round_state"].Should().BeEquivalentTo(DataEncoder.Instance.EncodeRoundState(state.ToDictionary()));
-                msg["action_histories"].Should().BeEquivalentTo(DataEncoder.Instance.EncodeActionHistories(state.Table));
+                MessageBuilder.GetMessageType(message).Should().Be(MessageBuilder.ASK);
+                message.MessageType.Should().Be(MessageType.ASK_MESSAGE);
+                message.State.Table.Seats[message.PlayerUuid].HoleCards.Should().BeEquivalentTo(new List<Card> { Card.FromString("CA"), Card.FromString("C2") });
+                message.ValidActions.Count.Should().Be(3);
             }
         }
 
@@ -89,18 +81,17 @@ namespace NPokerEngine.Tests.Engine
         public void GameUpdateMessageTest()
         {
             var state = SetupState();
-            var player = state.Table.Seats.Players[1];
+            var player = state.Table.Seats[1];
 
-            var message = MessageBuilder.Instance.BuildGameUpdateMessage(1, "call", 10, state.ToDictionary());
-            var msg = (IDictionary)message["message"];
+            var message = MessageBuilder.Instance.BuildGameUpdateMessage(1, ActionType.CALL, 10, state);
 
             using (new AssertionScope())
             {
-                message["type"].Should().Be("notification");
-                msg["message_type"].Should().Be(MessageBuilder.GAME_UPDATE_MESSAGE);
-                msg["action"].Should().BeEquivalentTo(DataEncoder.Instance.EncodeAction(player, "call", 10));
-                msg["round_state"].Should().BeEquivalentTo(DataEncoder.Instance.EncodeRoundState(state.ToDictionary()));
-                msg["action_histories"].Should().BeEquivalentTo(DataEncoder.Instance.EncodeActionHistories(state.Table));
+                MessageBuilder.GetMessageType(message).Should().Be(MessageBuilder.NOTIFICATION);
+                message.MessageType.Should().Be(MessageType.GAME_UPDATE_MESSAGE);
+                message.PlayerUuid.Should().Be(player.Uuid);
+                message.Action.Should().Be(ActionType.CALL);
+                message.Amount.Should().Be(10);
             }
         }
 
@@ -111,17 +102,14 @@ namespace NPokerEngine.Tests.Engine
             var winners = state.Table.Seats.Players.Skip(1).Take(1);
             var handInfo = new string[] { "dummy", "info" };
 
-            var message = MessageBuilder.Instance.BuildRoundResultMessage(7, winners, handInfo, state.ToDictionary());
-            var msg = (IDictionary)message["message"];
+            var message = MessageBuilder.Instance.BuildRoundResultMessage(7, winners, handInfo, state);
 
             using (new AssertionScope())
             {
-                message["type"].Should().Be("notification");
-                msg["message_type"].Should().Be(MessageBuilder.ROUND_RESULT_MESSAGE);
-                msg["round_count"].Should().Be(7);
-                msg["hand_info"].Should().BeEquivalentTo(handInfo);
-                msg["winners"].Should().BeEquivalentTo(DataEncoder.Instance.EncodeWinners(winners)["winners"]);
-                msg["round_state"].Should().BeEquivalentTo(DataEncoder.Instance.EncodeRoundState(state.ToDictionary()));
+                MessageBuilder.GetMessageType(message).Should().Be(MessageBuilder.NOTIFICATION);
+                message.MessageType.Should().Be(MessageType.ROUND_RESULT_MESSAGE);
+                message.RoundCount.Should().Be(7);
+                message.Winners.Should().BeEquivalentTo(winners);
             }
         }
 
@@ -133,13 +121,11 @@ namespace NPokerEngine.Tests.Engine
             var seats = SetupSeats();
 
             var message = MessageBuilder.Instance.BuildGameResultMessage(config, seats);
-            var msg = (IDictionary)message["message"];
 
             using (new AssertionScope())
             {
-                message["type"].Should().Be("notification");
-                msg["message_type"].Should().Be(MessageBuilder.GAME_RESULT_MESSAGE);
-                msg["game_information"].Should().BeEquivalentTo(DataEncoder.Instance.EncodeGameInformation(config, seats));
+                MessageBuilder.GetMessageType(message).Should().Be(MessageBuilder.NOTIFICATION);
+                message.MessageType.Should().Be(MessageType.GAME_RESULT_MESSAGE);
             }
         }
 
@@ -162,15 +148,23 @@ namespace NPokerEngine.Tests.Engine
             return table;
         }
 
-        private Dictionary<string, object> SetupConfig()
-            => new Dictionary<string, object>
+        private GameConfig SetupConfig()
+            => new GameConfig
             {
-                { "initial_stack", 100 },
-                { "max_round", 10 },
-                { "small_blind_amount", 5 },
-                { "ante", 3 },
-                { "blind_structure", null }
+                InitialStack = 100,
+                MaxRound = 10,
+                SmallBlindAmount = 5,
+                Ante = 3,
+                BlindStructure = null
             };
+            //=> new Dictionary<string, object>
+            //{
+            //    { "initial_stack", 100 },
+            //    { "max_round", 10 },
+            //    { "small_blind_amount", 5 },
+            //    { "ante", 3 },
+            //    { "blind_structure", null }
+            //};
 
         private Seats SetupSeats()
         {

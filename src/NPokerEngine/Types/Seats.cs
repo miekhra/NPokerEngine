@@ -36,5 +36,8 @@ namespace NPokerEngine.Types
             _players.ForEach(p => clone.Sitdown((Player)p.Clone()));
             return clone;
         }
+
+        public Player this[int seatNo] => _players[seatNo];
+        public Player this[string uuid] => _players.Single(t => t.Uuid == uuid);
     }
 }

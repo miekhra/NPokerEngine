@@ -9,7 +9,7 @@ namespace NPokerEngine.Messages
     {
         public MessageType MessageType => MessageType.ASK_MESSAGE;
         public string PlayerUuid { get; set; }
+        public Dictionary<ActionType, Tuple<float, float?>> ValidActions { get; set; }
         public GameState State { get; set; }
-        public Dictionary<ActionType, Tuple<int, int?>> ValidActions { get; set; }
     }
 }

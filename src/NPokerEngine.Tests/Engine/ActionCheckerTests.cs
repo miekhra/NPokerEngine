@@ -22,7 +22,7 @@ namespace NPokerEngine.Tests.Engine
             var players = SetupCleanPlayers();
             using (new AssertionScope())
             {
-                ActionChecker.Instance.IsIlLegal(players, 0, 2.5f, "call", 0).Should().BeFalse();
+                ActionChecker.Instance.IsIlLegal(players, 0, 2.5f, ActionType.CALL, 0).Should().BeFalse();
                 ActionChecker.Instance.NeedAmountForAction(players.First(), 0).Should().Be(0);
                 ActionChecker.Instance.NeedAmountForAction(players.Last(), 0).Should().Be(0);
             }
@@ -32,28 +32,28 @@ namespace NPokerEngine.Tests.Engine
         public void CallTest()
         {
             var players = SetupCleanPlayers();
-            ActionChecker.Instance.IsIlLegal(players, 0, 2.5f ,"call", 10).Should().BeTrue();
+            ActionChecker.Instance.IsIlLegal(players, 0, 2.5f, ActionType.CALL, 10).Should().BeTrue();
         }
 
         [TestMethod]
         public void TooSmallRaiseTest()
         {
             var players = SetupCleanPlayers();
-            ActionChecker.Instance.IsIlLegal(players, 0, 2.5f , "raise", 4).Should().BeTrue();
+            ActionChecker.Instance.IsIlLegal(players, 0, 2.5f, ActionType.RAISE, 4).Should().BeTrue();
         }
 
         [TestMethod]
         public void LegalRaiseTest()
         {
             var players = SetupCleanPlayers();
-            ActionChecker.Instance.IsIlLegal(players, 0, 2.5f , "raise", 5).Should().BeFalse();
+            ActionChecker.Instance.IsIlLegal(players, 0, 2.5f, ActionType.RAISE, 5).Should().BeFalse();
         }
 
         [TestMethod]
         public void _FoldTest()
         {
             var players = SetupBlindPlayers();
-            ActionChecker.Instance.IsIlLegal(players, 0, 2.5f, "fold").Should().BeFalse();
+            ActionChecker.Instance.IsIlLegal(players, 0, 2.5f, ActionType.FOLD).Should().BeFalse();
         }
 
         [TestMethod]
@@ -62,9 +62,9 @@ namespace NPokerEngine.Tests.Engine
             var players = SetupBlindPlayers();
             using (new AssertionScope())
             {
-                ActionChecker.Instance.IsIlLegal(players, 0, 2.5f, "call", 9).Should().BeTrue();
-                ActionChecker.Instance.IsIlLegal(players, 0, 2.5f, "call", 10).Should().BeFalse();
-                ActionChecker.Instance.IsIlLegal(players, 0, 2.5f, "call", 11).Should().BeTrue();
+                ActionChecker.Instance.IsIlLegal(players, 0, 2.5f, ActionType.CALL, 9).Should().BeTrue();
+                ActionChecker.Instance.IsIlLegal(players, 0, 2.5f, ActionType.CALL, 10).Should().BeFalse();
+                ActionChecker.Instance.IsIlLegal(players, 0, 2.5f, ActionType.CALL, 11).Should().BeTrue();
                 ActionChecker.Instance.NeedAmountForAction(players.First(), 10).Should().Be(5);
                 ActionChecker.Instance.NeedAmountForAction(players.Last(), 10).Should().Be(0);
             }
@@ -76,9 +76,9 @@ namespace NPokerEngine.Tests.Engine
             var players = SetupBlindPlayers();
             using (new AssertionScope())
             {
-                ActionChecker.Instance.IsIlLegal(players, 0, 2.5f, "raise", 14).Should().BeTrue();
-                ActionChecker.Instance.IsIlLegal(players, 0, 2.5f, "raise", 15).Should().BeFalse();
-                ActionChecker.Instance.IsIlLegal(players, 0, 2.5f, "raise", 16).Should().BeFalse();
+                ActionChecker.Instance.IsIlLegal(players, 0, 2.5f, ActionType.RAISE, 14).Should().BeTrue();
+                ActionChecker.Instance.IsIlLegal(players, 0, 2.5f, ActionType.RAISE, 15).Should().BeFalse();
+                ActionChecker.Instance.IsIlLegal(players, 0, 2.5f, ActionType.RAISE, 16).Should().BeFalse();
                 ActionChecker.Instance.NeedAmountForAction(players.First(), 15).Should().Be(10);
                 ActionChecker.Instance.NeedAmountForAction(players.Last(), 15).Should().Be(5);
             }
@@ -91,8 +91,8 @@ namespace NPokerEngine.Tests.Engine
             players.First().CollectBet(88); //p1 stack is $7
             using (new AssertionScope())
             {
-                ActionChecker.Instance.IsIlLegal(players, 0, 2.5f, "call", 10).Should().BeFalse();
-                ActionChecker.Instance.IsIlLegal(players, 0, 2.5f, "call", 15).Should().BeTrue();
+                ActionChecker.Instance.IsIlLegal(players, 0, 2.5f, ActionType.CALL, 10).Should().BeFalse();
+                ActionChecker.Instance.IsIlLegal(players, 0, 2.5f, ActionType.CALL, 15).Should().BeTrue();
             }
         }
 
@@ -100,7 +100,7 @@ namespace NPokerEngine.Tests.Engine
         public void _SmallBlindAllInRaiseTest()
         {
             var players = SetupBlindPlayers();
-            ActionChecker.Instance.IsIlLegal(players, 0, 2.5f, "raise", 100).Should().BeFalse();
+            ActionChecker.Instance.IsIlLegal(players, 0, 2.5f, ActionType.RAISE, 100).Should().BeFalse();
         }
 
         [TestMethod]
@@ -111,9 +111,9 @@ namespace NPokerEngine.Tests.Engine
 
             using (new AssertionScope())
             {
-                ActionChecker.Instance.IsIlLegal(players, 1, 2.5f, "call", 100).Should().BeFalse();
+                ActionChecker.Instance.IsIlLegal(players, 1, 2.5f, ActionType.CALL, 100).Should().BeFalse();
                 players.Last().CollectBet(1);
-                ActionChecker.Instance.IsIlLegal(players, 1, 2.5f, "call", 100).Should().BeTrue();
+                ActionChecker.Instance.IsIlLegal(players, 1, 2.5f, ActionType.CALL, 100).Should().BeTrue();
             }
         }
 
@@ -124,9 +124,9 @@ namespace NPokerEngine.Tests.Engine
 
             using (new AssertionScope())
             {
-                ActionChecker.Instance.IsAllin(player, "call", 99).Should().BeFalse();
-                ActionChecker.Instance.IsAllin(player, "call", 100).Should().BeTrue();
-                ActionChecker.Instance.IsAllin(player, "call", 101).Should().BeTrue();
+                ActionChecker.Instance.IsAllin(player, ActionType.CALL, 99).Should().BeFalse();
+                ActionChecker.Instance.IsAllin(player, ActionType.CALL, 100).Should().BeTrue();
+                ActionChecker.Instance.IsAllin(player, ActionType.CALL, 101).Should().BeTrue();
             }
         }
 
@@ -135,7 +135,7 @@ namespace NPokerEngine.Tests.Engine
         {
             var player = SetupCleanPlayers().First();
 
-            ActionChecker.Instance.IsAllin(player, "fold", 0).Should().BeFalse();
+            ActionChecker.Instance.IsAllin(player, ActionType.FOLD, 0).Should().BeFalse();
         }
 
         [TestMethod]
@@ -147,11 +147,11 @@ namespace NPokerEngine.Tests.Engine
             players.Last().AddActionHistory(ActionType.BIG_BLIND, sbAmount: 5);
             players.Last().Stack = 30;
 
-            (string actionName, float amount) = ActionChecker.Instance.CorrectAction(players, 1, 2.5f, "call", 50);
+            (ActionType actionName, float amount) = ActionChecker.Instance.CorrectAction(players, 1, 2.5f, ActionType.CALL, 50);
 
             using (new AssertionScope())
             {
-                actionName.Should().Be("call");
+                actionName.Should().Be(ActionType.CALL);
                 amount.Should().Be(40);
             }
         }
@@ -161,11 +161,11 @@ namespace NPokerEngine.Tests.Engine
         {
             var players = SetupCleanPlayers();
 
-            (string actionName, float amount) = ActionChecker.Instance.CorrectAction(players, 0, 2.5f, "call", 10);
+            (ActionType actionName, float amount) = ActionChecker.Instance.CorrectAction(players, 0, 2.5f, ActionType.CALL, 10);
 
             using (new AssertionScope())
             {
-                actionName.Should().Be("fold");
+                actionName.Should().Be(ActionType.FOLD);
                 amount.Should().Be(0);
             }
         }
@@ -187,25 +187,25 @@ namespace NPokerEngine.Tests.Engine
             players.First().PayInfo.UpdateByPay(55);
             players.First().AddActionHistory(ActionType.RAISE, 60, 55);
 
-            (string actionName, float amount) = ActionChecker.Instance.CorrectAction(players, 1, 2.5f, "call", 60);
+            (ActionType actionName, float amount) = ActionChecker.Instance.CorrectAction(players, 1, 2.5f, ActionType.CALL, 60);
 
             using (new AssertionScope())
             {
-                actionName.Should().Be("call");
+                actionName.Should().Be(ActionType.CALL);
                 amount.Should().Be(60);
             }
         }
-         
+
         [TestMethod]
         public void CorrectIllegalRaiseTest()
         {
             var players = SetupCleanPlayers();
 
-            (string actionName, float amount) = ActionChecker.Instance.CorrectAction(players, 0, 2.5f, "raise", 101);
+            (ActionType actionName, float amount) = ActionChecker.Instance.CorrectAction(players, 0, 2.5f, ActionType.RAISE, 101);
 
             using (new AssertionScope())
             {
-                actionName.Should().Be("fold");
+                actionName.Should().Be(ActionType.FOLD);
                 amount.Should().Be(0);
             }
         }
@@ -215,11 +215,11 @@ namespace NPokerEngine.Tests.Engine
         {
             var players = SetupCleanPlayers();
 
-            (string actionName, float amount) = ActionChecker.Instance.CorrectAction(players, 0, 2.5f, "call", 0);
+            (ActionType actionName, float amount) = ActionChecker.Instance.CorrectAction(players, 0, 2.5f, ActionType.CALL, 0);
 
             using (new AssertionScope())
             {
-                actionName.Should().Be("call");
+                actionName.Should().Be(ActionType.CALL);
                 amount.Should().Be(0);
             }
         }
@@ -229,11 +229,11 @@ namespace NPokerEngine.Tests.Engine
         {
             var players = SetupCleanPlayers();
 
-            (string actionName, float amount) = ActionChecker.Instance.CorrectAction(players, 0, 2.5f, "raise", 100);
+            (ActionType actionName, float amount) = ActionChecker.Instance.CorrectAction(players, 0, 2.5f, ActionType.RAISE, 100);
 
             using (new AssertionScope())
             {
-                actionName.Should().Be("raise");
+                actionName.Should().Be(ActionType.RAISE);
                 amount.Should().Be(100);
             }
         }
@@ -245,38 +245,12 @@ namespace NPokerEngine.Tests.Engine
 
             var legalActions = ActionChecker.Instance.LegalActions(players, 0, 2.5f);
 
-            legalActions.Should().SatisfyRespectively(
-                    first =>
-                    {
-                        first.Should().BeEquivalentTo(new Dictionary<string, object> 
-                        { 
-                            { "action", "fold" }, 
-                            { "amount", 0f } 
-                        });
-                    },
-                    second =>
-                    {
-                        second.Should().BeEquivalentTo(new Dictionary<string, object>
-                        {
-                            { "action", "call" },
-                            { "amount", 10f }
-                        });
-                    },
-                    third =>
-                    {
-                        third.Should().BeEquivalentTo(new Dictionary<string, object>
-                        {
-                            { "action", "raise" },
-                            { 
-                                "amount",  
-                                new Dictionary<object, object>()
-                                {
-                                    { "min", 15f },
-                                    { "max", 100f }
-                                }
-                            }
-                        });
-                    });
+            legalActions.Should().SatisfyRespectively
+                (
+                    first =>first.Should().BeEquivalentTo(new KeyValuePair<ActionType, AmountInterval>(ActionType.FOLD, AmountInterval.Empty)),
+                    second => second.Should().BeEquivalentTo(new KeyValuePair<ActionType, AmountInterval>(ActionType.CALL, new AmountInterval(10f))),
+                    third => third.Should().BeEquivalentTo(new KeyValuePair<ActionType, AmountInterval>(ActionType.RAISE, new AmountInterval(15f, 100f)))
+                );
         }
 
         [TestMethod]
@@ -286,45 +260,19 @@ namespace NPokerEngine.Tests.Engine
             players.First().Stack = 9;
             var legalActions = ActionChecker.Instance.LegalActions(players, 0, 2.5f);
 
-            legalActions.Should().SatisfyRespectively(
-                    first =>
-                    {
-                        first.Should().BeEquivalentTo(new Dictionary<string, object>
-                        {
-                            { "action", "fold" },
-                            { "amount", 0f }
-                        });
-                    },
-                    second =>
-                    {
-                        second.Should().BeEquivalentTo(new Dictionary<string, object>
-                        {
-                            { "action", "call" },
-                            { "amount", 10f }
-                        });
-                    },
-                    third =>
-                    {
-                        third.Should().BeEquivalentTo(new Dictionary<string, object>
-                        {
-                            { "action", "raise" },
-                            {
-                                "amount",
-                                new Dictionary<object, object>()
-                                {
-                                    { "min", -1 },
-                                    { "max", -1 }
-                                }
-                            }
-                        });
-                    });
+            legalActions.Should().SatisfyRespectively
+                (
+                    first => first.Should().BeEquivalentTo(new KeyValuePair<ActionType, AmountInterval>(ActionType.FOLD, AmountInterval.Empty)),
+                    second => second.Should().BeEquivalentTo(new KeyValuePair<ActionType, AmountInterval>(ActionType.CALL, new AmountInterval(10f))),
+                    third => third.Should().BeEquivalentTo(new KeyValuePair<ActionType, AmountInterval>(ActionType.RAISE, new AmountInterval(-1, -1)))
+                );
         }
 
         [TestMethod()]
         public void NeedAmountAfterAnteTest()
         {
             //situation => SB=$5 (players[0]), BB=$10 (players[1]), ANTE=$3
-            var players = Enumerable.Range(0,3).Select(t => new Player("uuid", 100, name: "name")).ToList();
+            var players = Enumerable.Range(0, 3).Select(t => new Player("uuid", 100, name: "name")).ToList();
             players.ForEach(p =>
             {
                 p.CollectBet(3);
@@ -349,15 +297,15 @@ namespace NPokerEngine.Tests.Engine
                 }
             }
 
-            setStacks(new float[] {7,7,7});
+            setStacks(new float[] { 7, 7, 7 });
             using (new AssertionScope())
             {
-                ActionChecker.Instance.CorrectAction(players, 0, 5, "call", 10).Should().BeEquivalentTo(("call", 10));
-                ActionChecker.Instance.CorrectAction(players, 1, 5, "call", 10).Should().BeEquivalentTo(("call", 10));
-                ActionChecker.Instance.CorrectAction(players, 2, 5, "call", 10).Should().BeEquivalentTo(("call", 7));
+                ActionChecker.Instance.CorrectAction(players, 0, 5, ActionType.CALL, 10).Should().BeEquivalentTo((ActionType.CALL, 10));
+                ActionChecker.Instance.CorrectAction(players, 1, 5, ActionType.CALL, 10).Should().BeEquivalentTo((ActionType.CALL, 10));
+                ActionChecker.Instance.CorrectAction(players, 2, 5, ActionType.CALL, 10).Should().BeEquivalentTo((ActionType.CALL, 7));
 
-                ActionChecker.Instance.IsAllin(players[2], "call", 8).Should().BeTrue();
-                ActionChecker.Instance.IsAllin(players[2], "raise", 10).Should().BeFalse();
+                ActionChecker.Instance.IsAllin(players[2], ActionType.CALL, 8).Should().BeTrue();
+                ActionChecker.Instance.IsAllin(players[2], ActionType.RAISE, 10).Should().BeFalse();
 
                 ActionChecker.Instance.NeedAmountForAction(players[0], 10).Should().Be(5);
                 ActionChecker.Instance.NeedAmountForAction(players[1], 10).Should().Be(0);
@@ -365,17 +313,17 @@ namespace NPokerEngine.Tests.Engine
 
                 setStacks(new float[] { 12, 12, 12 });
                 var legalActions = ActionChecker.Instance.LegalActions(players, 2, 5);
-                ((IDictionary)(legalActions[2]["amount"]))["max"].Should().Be(-1);
+                legalActions.ElementAt(2).Value.MaxValue.Should().Be(-1);
 
                 setStacks(new float[] { 10, 5, 12 });
-                ActionChecker.Instance.CorrectAction(players, 0, 5, "raise", 15).Should().BeEquivalentTo(("raise", 15));
-                ActionChecker.Instance.CorrectAction(players, 1, 5, "raise", 15).Should().BeEquivalentTo(("raise", 15));
-                ActionChecker.Instance.CorrectAction(players, 2, 5, "raise", 15).Should().BeEquivalentTo(("fold", 0));
+                ActionChecker.Instance.CorrectAction(players, 0, 5, ActionType.RAISE, 15).Should().BeEquivalentTo((ActionType.RAISE, 15));
+                ActionChecker.Instance.CorrectAction(players, 1, 5, ActionType.RAISE, 15).Should().BeEquivalentTo((ActionType.RAISE, 15));
+                ActionChecker.Instance.CorrectAction(players, 2, 5, ActionType.RAISE, 15).Should().BeEquivalentTo((ActionType.FOLD, 0));
             }
         }
 
         private List<Player> SetupCleanPlayers()
-            => Enumerable.Range(0,2).Select(t => new Player("uuid", 100)).ToList();
+            => Enumerable.Range(0, 2).Select(t => new Player("uuid", 100)).ToList();
 
         private List<Player> SetupBlindPlayers()
             => Enumerable.Range(0, 2).Select(t => CreateBlindPlayer(!Convert.ToBoolean(t))).ToList();

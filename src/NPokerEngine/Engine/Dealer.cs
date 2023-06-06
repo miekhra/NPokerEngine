@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
+using NPokerEngine.Messages;
 using NPokerEngine.Types;
 
 namespace NPokerEngine.Engine
@@ -82,11 +83,11 @@ namespace NPokerEngine.Engine
             return this.GenerateGameResult(max_round, table.Seats);
         }
 
-        public Table PlayRound(int round_count, int blind_amount, int ante, Table table)
+        public Table PlayRound(int round_count, float blind_amount, float ante, Table table)
         {
             var _tup_1 = RoundManager.Instance.StartNewRound(round_count, blind_amount, ante, table);
             var state = _tup_1.Item1;
-            var msgs = (IEnumerable<Tuple<object, IDictionary>>)_tup_1.Item2;
+            var msgs = (IEnumerable<Tuple<object, IMessage>>)_tup_1.Item2;
             while (true)
             {
                 this.MessageCheck(msgs, state.Street);
@@ -96,9 +97,9 @@ namespace NPokerEngine.Engine
                     var _tup_2 = this.PublishMessages(msgs);
                     var action = _tup_2.Item1;
                     var bet_amount = _tup_2.Item2;
-                    var _tup_3 = RoundManager.Instance.ApplyAction(state, action.ToString(), bet_amount);
+                    var _tup_3 = RoundManager.Instance.ApplyAction(state, action, bet_amount);
                     state = _tup_3.Item1;
-                    msgs = (IEnumerable<Tuple<object, IDictionary>>)_tup_3.Item2;
+                    msgs = (IEnumerable<Tuple<object, IMessage>>)_tup_3.Item2;
                 }
                 else
                 {
@@ -166,20 +167,20 @@ namespace NPokerEngine.Engine
                     select player).ToList().Count == 1;
         }
 
-        private void MessageCheck(IEnumerable<Tuple<object, IDictionary>> msgs, StreetType street)
+        private void MessageCheck(IEnumerable<Tuple<object, IMessage>> msgs, StreetType street)
         {
             var _tup_1 = msgs.Last();
             var address = _tup_1.Item1;
             var msg = _tup_1.Item2;
-            var invalid = (string)msg["type"] != "ask";
-            invalid |= street != StreetType.FINISHED || (string)((IDictionary)msg["message"])["message_type"] == "round_result";
+            var invalid = MessageBuilder.GetMessageType(msg) != MessageBuilder.ASK; //(string)msg["type"] != "ask";
+            invalid |= street != StreetType.FINISHED || msg.MessageType == MessageType.ROUND_RESULT_MESSAGE; //(string)((IDictionary)msg["message"])["message_type"] == "round_result";
             if (invalid)
             {
                 throw new Exception(String.Format("Last message is not ask type. : %s", msgs));
             }
         }
 
-        private Tuple<ActionType, int> PublishMessages(IEnumerable<Tuple<object, IDictionary>> msgs)
+        private Tuple<ActionType, int> PublishMessages(IEnumerable<Tuple<object, IMessage>> msgs)
         {
             foreach (var _tup_1 in msgs.Reverse())
             {
@@ -289,24 +290,32 @@ namespace NPokerEngine.Engine
             return this._messageSummarizer.Summarize(result_message);
         }
 
-        private Dictionary<string, object> GenConfig(int max_round)
+        private GameConfig GenConfig(int max_round)
         {
-            return new Dictionary<string, object> {
-                    {
-                        "initial_stack",
-                        this._initialStack},
-                    {
-                        "max_round",
-                        max_round},
-                    {
-                        "small_blind_amount",
-                        this._smallBlindAmount},
-                    {
-                        "ante",
-                        this._ante},
-                    {
-                        "blind_structure",
-                        this._blindStructure}};
+            return new GameConfig
+            {
+                MaxRound = max_round,
+                Ante = this._ante,
+                InitialStack = this._initialStack,
+                SmallBlindAmount = this._smallBlindAmount,
+                BlindStructure = this._blindStructure.ToDictionary(k => Convert.ToInt32(k.Key), v => Convert.ToSingle(v.Value))
+            };
+            //return new Dictionary<string, object> {
+            //        {
+            //            "initial_stack",
+            //            this._initialStack},
+            //        {
+            //            "max_round",
+            //            max_round},
+            //        {
+            //            "small_blind_amount",
+            //            this._smallBlindAmount},
+            //        {
+            //            "ante",
+            //            this._ante},
+            //        {
+            //            "blind_structure",
+            //            this._blindStructure}};
         }
 
         private void ConfigCheck()

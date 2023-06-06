@@ -22,11 +22,11 @@ namespace NPokerEngine.Engine
 
         private ActionChecker() { }
 
-        public (string action, float amount) CorrectAction(
+        public (ActionType action, float amount) CorrectAction(
             List<Player> players,
             int playerPosition,
             float sbAmount,
-            string action,
+            ActionType action,
             float amount = 0)
         {
             if (this.IsAllin(players[playerPosition], action, amount))
@@ -35,19 +35,19 @@ namespace NPokerEngine.Engine
             }
             else if (this.IsIlLegal(players, playerPosition, sbAmount, action, amount))
             {
-                action = "fold";
+                action = ActionType.FOLD;
                 amount = 0;
             }
             return (action, amount);
         }
 
-        public bool IsAllin(Player player, string action, float betAmount)
+        public bool IsAllin(Player player, ActionType action, float betAmount)
         {
-            if (action == "call")
+            if (action == ActionType.CALL)
             {
                 return betAmount >= player.Stack + player.PaidSum();
             }
-            else if (action == "raise")
+            else if (action == ActionType.RAISE)
             {
                 return betAmount == player.Stack + player.PaidSum();
             }
@@ -62,7 +62,7 @@ namespace NPokerEngine.Engine
             return amount - player.PaidSum();
         }
 
-        public List<Dictionary<string, object>> LegalActions(List<Player> players, int playerPosition, float sbAmount)
+        public Dictionary<ActionType, AmountInterval> LegalActions(List<Player> players, int playerPosition, float sbAmount)
         {
             var min_raise = this.MinRaiseAmount(players, sbAmount);
             var max_raise = players[playerPosition].Stack + players[playerPosition].PaidSum();
@@ -70,42 +70,19 @@ namespace NPokerEngine.Engine
             {
                 min_raise = max_raise = -1;
             }
-            return new List<Dictionary<string, object>> {
-                    new Dictionary<string, object> {
-                        {
-                            "action",
-                            "fold"},
-                        {
-                            "amount",
-                            0}},
-                    new Dictionary<string, object> {
-                        {
-                            "action",
-                            "call"},
-                        {
-                            "amount",
-                            this.AgreeAmount(players)}},
-                    new Dictionary<string, object> {
-                        {
-                            "action",
-                            "raise"},
-                        {
-                            "amount",
-                            new Dictionary<object, object> {
-                                {
-                                    "min",
-                                    min_raise},
-                                {
-                                    "max",
-                                    max_raise}}}}
-                };
+            return new Dictionary<ActionType, AmountInterval>
+            {
+                { ActionType.FOLD, AmountInterval.Empty },
+                { ActionType.CALL, new AmountInterval(this.AgreeAmount(players)) },
+                { ActionType.RAISE, new AmountInterval(min_raise, max_raise) }
+            };
         }
 
         internal bool IsLegal(
             List<Player> players,
             int playerPosition,
             int sbAmount,
-            string action,
+            ActionType action,
             int amount = 0)
         {
             return !this.IsIlLegal(players, playerPosition, sbAmount, action, amount);
@@ -115,18 +92,18 @@ namespace NPokerEngine.Engine
             List<Player> players,
             int playerPosition,
             float sbAmount,
-            string action,
+            ActionType action,
             float amount = 0)
         {
-            if (action == "fold")
+            if (action == ActionType.FOLD)
             {
                 return false;
             }
-            else if (action == "call")
+            else if (action == ActionType.CALL)
             {
                 return this.IsShortOfMoney(players[playerPosition], amount) || this.IsIlLegalCall(players, amount);
             }
-            else if (action == "raise")
+            else if (action == ActionType.RAISE)
             {
                 return this.IsShortOfMoney(players[playerPosition], amount) || this.IsIllegalRaise(players, amount, sbAmount);
             }

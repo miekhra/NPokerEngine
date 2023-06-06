@@ -3,6 +3,8 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
+using NPokerEngine.Messages;
 using NPokerEngine.Types;
 
 namespace NPokerEngine.Engine
@@ -29,7 +31,7 @@ namespace NPokerEngine.Engine
             {
                 return;
             }
-            var summaries = (from raw_message in raw_messages.Cast<IDictionary>()
+            var summaries = (from raw_message in raw_messages.Cast<IMessage>()
                              select this.Summarize(raw_message)).ToList();
             summaries = (from summary in summaries
                          where summary != null
@@ -41,92 +43,115 @@ namespace NPokerEngine.Engine
             }
         }
 
-        public string Summarize(IDictionary message)
+        public string Summarize(IMessage message)
         {
             if (this._verbose == 0)
             {
                 return string.Empty;
             }
-            var content = (IDictionary)message["message"];
-            var message_type = (string)content["message_type"];
-            if (MessageBuilder.GAME_START_MESSAGE == message_type)
+            switch(message.MessageType)
             {
-                return this.SummarizeGameStart(content);
-            }
-            if (MessageBuilder.ROUND_START_MESSAGE == message_type)
-            {
-                return this.SummarizeRoundStart(content);
-            }
-            if (MessageBuilder.STREET_START_MESSAGE == message_type)
-            {
-                return this.SummarizeStreetStart(content);
-            }
-            if (MessageBuilder.GAME_UPDATE_MESSAGE == message_type)
-            {
-                return this.SummarizePlayerAction(content);
-            }
-            if (MessageBuilder.ROUND_RESULT_MESSAGE == message_type)
-            {
-                return this.SummarizeRoundResult(content);
-            }
-            if (MessageBuilder.GAME_RESULT_MESSAGE == message_type)
-            {
-                return this.SummarizeGameResult(content);
-            }
-            return string.Empty;
+                case MessageType.GAME_START_MESSAGE:
+                    return this.SummarizeGameStart((GameStartMessage)message);
+                case MessageType.ROUND_START_MESSAGE:
+                    return this.SummarizeRoundStart((RoundStartMessage)message);
+                case MessageType.STREET_START_MESSAGE:
+                    return this.SummarizeStreetStart((StreetStartMessage)message);
+                case MessageType.GAME_UPDATE_MESSAGE:
+                    return this.SummarizePlayerAction((GameUpdateMessage)message);
+                case MessageType.ROUND_RESULT_MESSAGE:
+                    return this.SummarizeRoundResult((RoundResultMessage)message);
+                case MessageType.GAME_RESULT_MESSAGE:
+                    return this.SummarizeGameResult((GameResultMessage)message);
+                default: 
+                    return string.Empty;
+            };
+            //var content = (IDictionary)message["message"];
+            //var message_type = (string)content["message_type"];
+            //if (MessageBuilder.GAME_START_MESSAGE == message_type)
+            //{
+            //    return this.SummarizeGameStart(content);
+            //}
+            //if (MessageBuilder.ROUND_START_MESSAGE == message_type)
+            //{
+            //    return this.SummarizeRoundStart(content);
+            //}
+            //if (MessageBuilder.STREET_START_MESSAGE == message_type)
+            //{
+            //    return this.SummarizeStreetStart(content);
+            //}
+            //if (MessageBuilder.GAME_UPDATE_MESSAGE == message_type)
+            //{
+            //    return this.SummarizePlayerAction(content);
+            //}
+            //if (MessageBuilder.ROUND_RESULT_MESSAGE == message_type)
+            //{
+            //    return this.SummarizeRoundResult(content);
+            //}
+            //if (MessageBuilder.GAME_RESULT_MESSAGE == message_type)
+            //{
+            //    return this.SummarizeGameResult(content);
+            //}
+            //return string.Empty;
         }
 
-        public string SummarizeGameStart(IDictionary message)
+        public string SummarizeGameStart(GameStartMessage message)
         {
-            var seats = ((IList)((IDictionary)message["game_information"])["seats"]);
-            var names = (from player in seats.Cast<IDictionary>()
-                         select player["name"].ToString()).ToList();
-            var rule = ((IDictionary)message["game_information"])["rule"] as IDictionary;
-            return $"Started the game with player {string.Format(", ", names)} for {rule["max_round"]} round. (start stack={rule["initial_stack"]}, small blind={rule["small_blind_amount"]})";
+            //var seats = ((IList)((IDictionary)message["game_information"])["seats"]);
+            //var names = (from player in seats.Cast<IDictionary>()
+            //             select player["name"].ToString()).ToList();
+            //var rule = ((IDictionary)message["game_information"])["rule"] as IDictionary;
+            //return $"Started the game with player {string.Format(", ", names)} for {rule["max_round"]} round. (start stack={rule["initial_stack"]}, small blind={rule["small_blind_amount"]})";
+            return $"Started the game with player {string.Join(", ", message.Seats.Players.Select(t => t.Name))} for {message.Config.MaxRound} round. (start stack={message.Config.InitialStack}, small blind={message.Config.SmallBlindAmount})";
         }
 
-        public string SummarizeRoundStart(IDictionary message)
+        public string SummarizeRoundStart(RoundStartMessage message)
         {
-            return $"Started the round {message["round_count"]}";
+            return $"Started the round {message.RoundCount}";
         }
 
-        public string SummarizeStreetStart(IDictionary message)
+        public string SummarizeStreetStart(StreetStartMessage message)
         {
-            return $"Street \"%s\" started. (community card = {((IDictionary)message["round_state"])["community_card"]})"; ;
+            return $"Street {message.Street} started. (community card = {string.Join("", message.GameState.Table.CommunityCards.Select(t => t.ToString()))})";
+            //return $"Street \"%s\" started. (community card = {((IDictionary)message["round_state"])["community_card"]})";
         }
 
-        public string SummarizePlayerAction(IDictionary message)
+        public string SummarizePlayerAction(GameUpdateMessage message)
         {
-            var players = ((IDictionary)((IDictionary)message)["round_state"])["seats"] as IList;
-            var action = (IDictionary)message["action"];
-            var player_name = (from player in players.Cast<IDictionary>()
-                               where player["uuid"] == action["player_uuid"]
-                               select player["name"]).ToList()[0];
-            return $"\"{player_name}\" declared \"{action["action"]}:{action["amount"]}\"";
+            //var players = ((IDictionary)((IDictionary)message)["round_state"])["seats"] as IList;
+            //var action = (IDictionary)message["action"];
+            //var player_name = (from player in players.Cast<IDictionary>()
+            //                   where player["uuid"] == action["player_uuid"]
+            //                   select player["name"]).ToList()[0];
+            //return $"\"{player_name}\" declared \"{action["action"]}:{action["amount"]}\"";
+
+            return $"Player {message.Seats.Players.Single(t => t.Uuid == message.PlayerUuid).Name} declared action {message.Action}: {message.Amount}";
         }
 
-        public string SummarizeRoundResult(IDictionary message)
+        public string SummarizeRoundResult(RoundResultMessage message)
         {
-            var seats = ((IList)((IDictionary)message["game_information"])["seats"]);
-            var winners = (from player in ((IDictionary)message["winners"]).Cast<object>()
-                           select (((IDictionary)player)["name"]).ToString()).ToList();
-            var stack = new Dictionary<string, int>();
-            foreach (var item in seats)
-            {
-                stack.Add((((IDictionary)item)["name"]).ToString(), (int)((IDictionary)item)["stack"]);
-            }
-            return $"\"{string.Format(", ", winners)}\" won the round %d (stack = {PrintForMessageSummarizer(stack)})";
+            //var seats = ((IList)((IDictionary)message["game_information"])["seats"]);
+            //var winners = (from player in ((IDictionary)message["winners"]).Cast<object>()
+            //               select (((IDictionary)player)["name"]).ToString()).ToList();
+            //var stack = new Dictionary<string, int>();
+            //foreach (var item in seats)
+            //{
+            //    stack.Add((((IDictionary)item)["name"]).ToString(), (int)((IDictionary)item)["stack"]);
+            //}
+            //return $"\"{string.Format(", ", winners)}\" won the round %d (stack = {PrintForMessageSummarizer(stack)})";
+            return $"{string.Join(", ", message.Winners.Select(t => t.Name))} won the round {message.RoundCount} (stack = {PrintForMessageSummarizer(message.State.Table.Seats.Players.ToDictionary(k => k.Name, v => v.Stack))})";
         }
 
-        public string SummarizeGameResult(IDictionary message)
+        public string SummarizeGameResult(GameResultMessage message)
         {
-            var seats = ((IList)((IDictionary)message["game_information"])["seats"]);
-            var stack = new Dictionary<string, int>();
-            foreach (var item in seats)
-            {
-                stack.Add((((IDictionary)item)["name"]).ToString(), (int)((IDictionary)item)["stack"]);
-            }
-            return $"Game finished. (stack = {PrintForMessageSummarizer(stack)})";
+            //var seats = ((IList)((IDictionary)message["game_information"])["seats"]);
+            //var stack = new Dictionary<string, int>();
+            //foreach (var item in seats)
+            //{
+            //    stack.Add((((IDictionary)item)["name"]).ToString(), (int)((IDictionary)item)["stack"]);
+            //}
+            //return $"Game finished. (stack = {PrintForMessageSummarizer(stack)})";
+            return $"Game finished. (stack = {PrintForMessageSummarizer(message.Seats.Players.ToDictionary(k => k.Name, v => v.Stack))})";
         }
 
         private static string PrintForMessageSummarizer(IDictionary source)

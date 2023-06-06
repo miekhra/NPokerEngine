@@ -1,7 +1,10 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.Linq;
 using System.Text;
+using NPokerEngine.Messages;
 using NPokerEngine.Types;
 
 namespace NPokerEngine.Engine
@@ -22,23 +25,26 @@ namespace NPokerEngine.Engine
             this.algo_owner_map[uuid] = algorithm;
         }
 
-        public Tuple<ActionType, int> ProcessMessage(object address, IDictionary msg)
+
+
+        public Tuple<ActionType, int> ProcessMessage(object address, IMessage msg)
         {
             var receivers = this.FetchReceivers(address);
+            var messageType = MessageBuilder.GetMessageType(msg);
             foreach (BasePokerPlayer receiver in receivers)
             {
-                if ((string)msg["type"] == "ask")
+                if (messageType == MessageBuilder.ASK)
                 {
-                    return receiver.RespondToAsk((IDictionary)msg["message"]);
+                    return receiver.RespondToAsk(msg);
                 }
-                else if ((string)msg["type"] == "notification")
+                else if (messageType == MessageBuilder.NOTIFICATION)
                 {
-                    receiver.ReceiveNotification((IDictionary)msg["message"]);
+                    receiver.ReceiveNotification(msg);
                     return new Tuple<ActionType, int>(default, default);
                 }
                 else
                 {
-                    throw new ArgumentException(String.Format("Received unexpected message which type is [%s]", msg["type"]));
+                    throw new ArgumentException(String.Format("Received unexpected message which type is [%s]", msg.MessageType));
                 }
             }
 
