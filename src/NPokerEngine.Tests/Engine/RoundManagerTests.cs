@@ -22,7 +22,6 @@ namespace NPokerEngine.Tests.Engine
         [TestCleanup]
         public void Cleanup()
         {
-            RoundManager.Instance.SetMessageBuilder(null);
             GameEvaluator.Instance.SetHandEvaluator(null);
         }
 

@@ -5,7 +5,7 @@ using System.Text;
 
 namespace NPokerEngine.Messages
 {
-    public class AskMessage : IMessage
+    public class AskMessage : IPlayerMessage
     {
         public MessageType MessageType => MessageType.ASK_MESSAGE;
         public string PlayerUuid { get; set; }

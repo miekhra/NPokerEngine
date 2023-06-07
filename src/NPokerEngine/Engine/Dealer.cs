@@ -52,7 +52,7 @@ namespace NPokerEngine.Engine
         {
             this.ConfigCheck();
             var uuid = this.EscortPlayerToTable(player_name);
-            algorithm.Uuid = (string)uuid;
+            //algorithm.Uuid = (string)uuid;
             this.RegisterAlgorithmToMessageHandler(uuid, algorithm);
         }
 
@@ -61,7 +61,7 @@ namespace NPokerEngine.Engine
             this._messageSummarizer.Verbose = verbose;
         }
 
-        public string StartGame(int max_round)
+        public (GameResultMessage gameResult, string resultMessage) StartGame(int max_round)
         {
             var table = this._table;
             this.NotifyGameStart(max_round);
@@ -85,26 +85,22 @@ namespace NPokerEngine.Engine
 
         public Table PlayRound(int round_count, float blind_amount, float ante, Table table)
         {
-            var _tup_1 = RoundManager.Instance.StartNewRound(round_count, blind_amount, ante, table);
-            var state = _tup_1.Item1;
-            var msgs = (IEnumerable<Tuple<object, IMessage>>)_tup_1.Item2;
+            var (state, messages) = RoundManager.Instance.StartNewRound(round_count, blind_amount, ante, table);
             while (true)
             {
-                this.MessageCheck(msgs, state.Street);
+                this.MessageCheck(messages, state.Street);
                 if (state.Street != StreetType.FINISHED)
                 {
                     // continue the round
-                    var _tup_2 = this.PublishMessages(msgs);
+                    var _tup_2 = this.PublishMessages(messages);
                     var action = _tup_2.Item1;
                     var bet_amount = _tup_2.Item2;
-                    var _tup_3 = RoundManager.Instance.ApplyAction(state, action, bet_amount);
-                    state = _tup_3.Item1;
-                    msgs = (IEnumerable<Tuple<object, IMessage>>)_tup_3.Item2;
+                    (state, messages) = RoundManager.Instance.ApplyAction(state, action, bet_amount);
                 }
                 else
                 {
                     // finish the round after publish round result
-                    this.PublishMessages(msgs);
+                    this.PublishMessages(messages);
                     break;
                 }
             }
@@ -133,8 +129,8 @@ namespace NPokerEngine.Engine
                 var update_info = (IDictionary)blind_structure[round_count];
                 var msg = this._messageSummarizer.SummairzeBlindLevelUpdate(round_count, ante, update_info["ante"], sb_amount, update_info["small_blind"]);
                 this._messageSummarizer.PrintMessage(msg);
-                ante = (int)update_info["ante"];
-                sb_amount = (int)update_info["small_blind"];
+                ante = Convert.ToInt32(update_info["ante"]);
+                sb_amount = Convert.ToInt32(update_info["small_blind"]);
             }
             return Tuple.Create(ante, sb_amount);
         }
@@ -156,7 +152,7 @@ namespace NPokerEngine.Engine
         {
             var config = this.GenConfig(max_round);
             var start_msg = MessageBuilder.Instance.BuildGameStartMessage(config, _table.Seats);
-            this._messageHandler.ProcessMessage(-1, start_msg);
+            this._messageHandler.ProcessMessage(start_msg);
             this._messageSummarizer.Summarize(start_msg);
         }
 
@@ -167,29 +163,25 @@ namespace NPokerEngine.Engine
                     select player).ToList().Count == 1;
         }
 
-        private void MessageCheck(IEnumerable<Tuple<object, IMessage>> msgs, StreetType street)
+        private void MessageCheck(IEnumerable<IMessage> msgs, StreetType street)
         {
-            var _tup_1 = msgs.Last();
-            var address = _tup_1.Item1;
-            var msg = _tup_1.Item2;
-            var invalid = MessageBuilder.GetMessageType(msg) != MessageBuilder.ASK; //(string)msg["type"] != "ask";
-            invalid |= street != StreetType.FINISHED || msg.MessageType == MessageType.ROUND_RESULT_MESSAGE; //(string)((IDictionary)msg["message"])["message_type"] == "round_result";
+            var msg = msgs.Last();
+            var invalid = MessageBuilder.GetMessageType(msg) != MessageBuilder.ASK;
+            invalid &= street != StreetType.FINISHED; //(street != StreetType.FINISHED || msg.MessageType == MessageType.ROUND_RESULT_MESSAGE);
             if (invalid)
             {
                 throw new Exception(String.Format("Last message is not ask type. : %s", msgs));
             }
         }
 
-        private Tuple<ActionType, int> PublishMessages(IEnumerable<Tuple<object, IMessage>> msgs)
+        private Tuple<ActionType, int> PublishMessages(IEnumerable<IMessage> msgs)
         {
-            foreach (var _tup_1 in msgs.Reverse())
+            foreach (var m in msgs.Take(msgs.Count() - 1))
             {
-                var address = _tup_1.Item1;
-                var msg = _tup_1.Item2;
-                this._messageHandler.ProcessMessage(address, msg);
+                this._messageHandler.ProcessMessage(m);
             }
             this._messageSummarizer.SummarizeMessages(msgs.ToList());
-            return this._messageHandler.ProcessMessage(msgs.Last().Item1, msgs.Last().Item2);
+            return this._messageHandler.ProcessMessage(msgs.Last());
         }
 
         private Table ExcludeShortOfMoneyPlayers(Table table, int ante, int sb_amount)
@@ -281,13 +273,13 @@ namespace NPokerEngine.Engine
             }
         }
 
-        private string GenerateGameResult(int max_round, Seats seats)
+        private (GameResultMessage gameResult, string resultMessage) GenerateGameResult(int max_round, Seats seats)
         {
             var config = this.GenConfig(max_round);
             var result_message = MessageBuilder.Instance.BuildGameResultMessage(config, seats);
             this._messageSummarizer.Summarize(result_message);
             //return result_message;
-            return this._messageSummarizer.Summarize(result_message);
+            return (result_message, this._messageSummarizer.Summarize(result_message));
         }
 
         private GameConfig GenConfig(int max_round)
@@ -298,7 +290,7 @@ namespace NPokerEngine.Engine
                 Ante = this._ante,
                 InitialStack = this._initialStack,
                 SmallBlindAmount = this._smallBlindAmount,
-                BlindStructure = this._blindStructure.ToDictionary(k => Convert.ToInt32(k.Key), v => Convert.ToSingle(v.Value))
+                BlindStructure = this._blindStructure//.ToDictionary(k => Convert.ToInt32(k.Key), v => Convert.ToSingle(v.Value))
             };
             //return new Dictionary<string, object> {
             //        {

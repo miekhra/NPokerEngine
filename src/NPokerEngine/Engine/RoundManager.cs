@@ -12,9 +12,7 @@ namespace NPokerEngine.Engine
 {
     public class RoundManager
     {
-
         private static RoundManager _instance;
-        private MessageBuilder _messageBuilder;
 
         private RoundManager()
         {
@@ -33,9 +31,6 @@ namespace NPokerEngine.Engine
             }
         }
 
-        internal void SetMessageBuilder(MessageBuilder messageBuilder)
-            => _messageBuilder = messageBuilder;
-
         public (GameState roundState, List<IMessage> messages) StartNewRound(int round_count, float small_blind_amount, float ante_amount, Table table)
         {
             var _state = this.GenerateInitialState(round_count, small_blind_amount, table);
@@ -45,32 +40,10 @@ namespace NPokerEngine.Engine
             this.CorrectAnte(ante_amount, table.Seats.Players);
             this.CorrectBlind(small_blind_amount, table);
             this.DealHolecard(table.Deck, table.Seats.Players);
-            //var start_msg = this.RoundStartMessage(round_count, table).ToDictionary(k => k.Key, v =>(object)v.Value);
             var startMessages = this.RoundStartMessage(round_count, table);
             var (startState,  street_msgs) = this.StartStreet(state);
             state = startState;
-
             startMessages.AddRange(street_msgs);
-
-            //state = _tup_1.Item1;
-            //var street_msgs = _tup_1.Item2;
-
-            //var messages = new List<(string, object)>();
-            //foreach (var msg in start_msg)
-            //{
-            //    if (msg.Value is string str)
-            //        messages.Add((msg.Key, msg.Value));
-            //    if (msg.Value is Dictionary<string, object> dict && dict.Count > 0)
-            //        messages.Add((msg.Key, dict.ElementAt(0).Value));
-            //}
-
-            //foreach (var msg in (Dictionary<string, object>)street_msgs)
-            //{
-            //    if (msg.Value is string str)
-            //        messages.Add((msg.Key, msg.Value));
-            //    if (msg.Value is Dictionary<string, object> dict && dict.Count > 0)
-            //        messages.Add((msg.Key, dict.ElementAt(0).Value));
-            //}
 
             return (state, startMessages);
         }
@@ -82,8 +55,6 @@ namespace NPokerEngine.Engine
             state = this.UpdateStateByAction(state, action, bet_amount);
             var table = state.Table;
             var update_msg = this.UpdateMessage(state, action, bet_amount);
-            //if (_messageBuilder != null && update_msg is ValueTuple<int, Dictionary<string, object>> tup && tup.Item2 != null)
-            //    update_msg = new Tuple<string, object>(tup.Item1.ToString(), tup.Item2.ElementAt(0).Value);
             if (this.IsEveryoneAgreed(state))
             {
                 table.Seats.Players.ForEach(p => p.SaveStreetActionHistories(state.Street));
@@ -91,19 +62,6 @@ namespace NPokerEngine.Engine
                 var _tup_1 = this.StartStreet(state);
                 state = _tup_1.Item1;
                 var street_msgs = _tup_1.Item2;
-                if (_messageBuilder != null)
-                {
-                    var resultMessages = new List<IMessage>();
-                    //if (update_msg is Tuple<string, object> updateTuple)
-                    //    resultMessages.Add(updateTuple);
-                    //foreach (var item in (Dictionary<string, object>)street_msgs)
-                    //{
-                    //    resultMessages.Add(new Tuple<string, object>(item.Key, item.Value));
-                    //}
-                    foreach (var msg in (IEnumerable)street_msgs)
-                        resultMessages.Add((IMessage)msg);
-                    return Tuple.Create(state, (List<IMessage>)resultMessages);
-                }
 
                 var messagesList = new List<IMessage>()
                 {
@@ -116,38 +74,14 @@ namespace NPokerEngine.Engine
                 }
 
                 return Tuple.Create(state, messagesList);
-
-                //return Tuple.Create(state, (object)(new List<object> {
-                //        update_msg
-                //    } + street_msgs.ToString()));
             }
             else
             {
                 state.NextPlayerIx = table.NextAskWaitingPlayerPosition(state.NextPlayerIx);
                 var next_player_pos = state.NextPlayerIx;
                 var next_player = table.Seats.Players[next_player_pos];
-                var ask_message = (_messageBuilder ?? MessageBuilder.Instance).BuildAskMessage(next_player_pos, state);
-                //if (_messageBuilder != null)
-                //{
-                //    Tuple<string, object> askMessage2 = default;
-                //    if (ask_message is ValueTuple<string, Dictionary<string, object>> tup1)
-                //        askMessage2 = new Tuple<string, object>(tup1.Item1.ToString(), tup1.Item2.ElementAt(0).Value);
-                //    if (update_msg is Tuple<string, object> t2 && askMessage2 != default)
-                //        return Tuple.Create(state, (object)new List<Tuple<string, object>>() { t2, askMessage2 });
-                //    return Tuple.Create(state, (object)(new List<object> {
-                //        update_msg,
-                //        ask_message
-                //    }));
-                //}
+                var ask_message = MessageBuilder.Instance.BuildAskMessage(next_player_pos, state);
                 var messagesList = new List<IMessage>() { update_msg, ask_message };
-                //{
-                //    update_msg
-                //};
-                //foreach (var item in (IEnumerable)update_msg)
-                //{
-                //    messagesList.Add((IMessage)item);
-                //}
-                //messagesList.Add(ask_message.Item2);
                 return Tuple.Create(state, messagesList);
             }
         }
@@ -274,7 +208,7 @@ namespace NPokerEngine.Engine
             var hand_info = _tup_1.Item2;
             var prize_map = _tup_1.Item3;
             this.PrizeToWinners(state.Table.Seats.Players, prize_map);
-            var result_message = (_messageBuilder ?? MessageBuilder.Instance).BuildRoundResultMessage(state.RoundCount, winners, hand_info, state);
+            var result_message = MessageBuilder.Instance.BuildRoundResultMessage(state.RoundCount, winners, hand_info, state);
             state.Table.Reset();
             state.Street = (StreetType)(Convert.ToByte(state.Street) + 1);
             return (state, new List<IMessage>() { result_message });
@@ -292,85 +226,35 @@ namespace NPokerEngine.Engine
 
         private List<IMessage> RoundStartMessage(int round_count, Table table)
             => table.Seats.Players
-                .Select((player, ix) => (_messageBuilder ?? MessageBuilder.Instance).BuildRoundStartMessage(round_count, ix, table.Seats))
+                .Select((player, ix) => MessageBuilder.Instance.BuildRoundStartMessage(round_count, ix, table.Seats))
                 .Cast<IMessage>()
                 .ToList();
-        //{
-        //    var players = table.Seats.Players;
-        //    //Func<int, (string, Dictionary<string, object>)> gen_msg = idx => (players[idx].Uuid, (_messageBuilder ?? MessageBuilder.Instance).BuildRoundStartMessage(round_count, idx, table.Seats));
-        //    var aggregation = new Dictionary<string, IMessage>();
-        //    //for (var ix=0; ix < players.Count; ix++)
-        //    //{
-        //    //    var tuple = gen_msg(ix);
-        //    //    aggregation[tuple.Item1] = tuple.Item2;
-        //    //}
-        //    for (var ix = 0; ix < players.Count; ix++)
-        //    {
-        //        aggregation[players[ix].Uuid] = (_messageBuilder ?? MessageBuilder.Instance).BuildRoundStartMessage(round_count, ix, table.Seats);
-        //    }
-        //    return aggregation;
-        //}
 
         private (GameState state, List<IMessage> messages) ForwardStreet(GameState state)
         {
-            var street_start_msg = (_messageBuilder ?? MessageBuilder.Instance).BuildStreetStartMessage(state);
+            var street_start_msg = MessageBuilder.Instance.BuildStreetStartMessage(state);
+            var messagesList = new List<IMessage>();
             if (state.Table.Seats.ActivePlayersCount() == 1)
             {
-                street_start_msg = new();// new Dictionary<string, object>();
+                street_start_msg = null;
             }
+            if (street_start_msg != null)
+                messagesList.Add(street_start_msg);
             if (state.Table.Seats.AskWaitPlayersCount() <= 1)
             {
                 state.Street = (StreetType)(Convert.ToByte(state.Street) + 1);
                 var _tup_1 = this.StartStreet(state);
                 state = _tup_1.Item1;
                 var messages = _tup_1.Item2;
-                //if (_messageBuilder != null)
-                //{
-                //    var resultMessages = new Dictionary<string, object>();
-                //    foreach (var item in street_start_msg)
-                //    {
-                //        resultMessages[item.Key] = item.Value;
-                //    }
-                //    foreach (var item in (Dictionary<string, object>)messages)
-                //    {
-                //        resultMessages[item.Key] = item.Value;
-                //    }
-                //    return Tuple.Create(state, (object)resultMessages);
-                //}
-                var messagesList = new List<IMessage>() { street_start_msg };
-                foreach (var item in (IEnumerable)messages)
-                {
-                    messagesList.Add((IMessage)item);
-                }
+                messagesList.AddRange(messages);
                 return (state, messagesList);
-                //return Tuple.Create(state, (object)(street_start_msg.ToString() + messages.ToString()));
             }
             else
             {
                 var next_player_pos = state.NextPlayerIx;
                 var next_player = state.Table.Seats.Players[next_player_pos];
-                return (state, new List<IMessage> { street_start_msg, (_messageBuilder ?? MessageBuilder.Instance).BuildAskMessage(next_player_pos, state) });
-                //var ask_message = new List<object> {
-                //        (next_player.Uuid, (_messageBuilder ?? MessageBuilder.Instance).BuildAskMessage(next_player_pos,state))
-                //    };
-                //if (_messageBuilder != null)
-                //{
-                //    //street_start_msg[next_player.Uuid] = (_messageBuilder ?? MessageBuilder.Instance).BuildAskMessage(next_player_pos, state).Values.First();
-                //    //return Tuple.Create(state, (object)street_start_msg);
-                //    var askMessage = (_messageBuilder ?? MessageBuilder.Instance).BuildAskMessage(next_player_pos, state);
-                //    return (state, new List<IMessage>() { askMessage });
-                //}
-                //else
-                //{
-                //    //var messageDict = new Dictionary<string, object>();
-                //    //messageDict.Add("-1", MessageBuilder.Instance.BuildStreetStartMessage(state));
-                //    //messageDict.Add(((ValueTuple<string, Dictionary<string,object>>)ask_message[0]).Item1, ((ValueTuple<string, Dictionary<string, object>>)ask_message[0]).Item2);
-                //    var messagesList = new List<IMessage>() { MessageBuilder.Instance.BuildStreetStartMessage(state) };
-                //    return (state, messagesList);
-                //    //return Tuple.Create(state, (object)messageDict);
-                //    //return Tuple.Create(state, (object)new List<object> { new Tuple<string, object>("-1", MessageBuilder.Instance.BuildStreetStartMessage(state)), ask_message });
-                //}
-                //return Tuple.Create(state, (object)DictionaryUtils.Update(street_start_msg, new Dictionary<string, object> { { "uuid", next_player.Uuid } }, (_messageBuilder ?? MessageBuilder.Instance).BuildAskMessage(next_player_pos, state)).ToString());
+                messagesList.Add(MessageBuilder.Instance.BuildAskMessage(next_player_pos, state));
+                return (state, messagesList);
             }
         }
 
@@ -422,7 +306,7 @@ namespace NPokerEngine.Engine
 
         private GameUpdateMessage UpdateMessage(GameState state, ActionType action, float bet_amount)
         {
-            return (_messageBuilder ?? MessageBuilder.Instance).BuildGameUpdateMessage(state.NextPlayerIx, action, bet_amount, state);
+            return MessageBuilder.Instance.BuildGameUpdateMessage(state.NextPlayerIx, action, bet_amount, state);
         }
 
         private bool IsEveryoneAgreed(GameState state)
@@ -484,23 +368,6 @@ namespace NPokerEngine.Engine
         internal GameState DeepCopyState(GameState state)
         {
             return (GameState)state.Clone();
-            //var tableDeepcopy = ObjectUtils.DeepCopyByReflection(state["table"]);
-            //return new Dictionary<string, object> {
-            //        {
-            //            "round_count",
-            //            state["round_count"]},
-            //        {
-            //            "small_blind_amount",
-            //            state["small_blind_amount"]},
-            //        {
-            //            "street",
-            //            state["street"]},
-            //        {
-            //            "next_player",
-            //            state["next_player"]},
-            //        {
-            //            "table",
-            //            tableDeepcopy}};
         }
     }
 }

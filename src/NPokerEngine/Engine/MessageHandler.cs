@@ -27,20 +27,30 @@ namespace NPokerEngine.Engine
 
 
 
-        public Tuple<ActionType, int> ProcessMessage(object address, IMessage msg)
+        public Tuple<ActionType, int> ProcessMessage(IMessage msg)
         {
-            var receivers = this.FetchReceivers(address);
+            //var receivers = this.FetchReceivers(address);
             var messageType = MessageBuilder.GetMessageType(msg);
-            foreach (BasePokerPlayer receiver in receivers)
+            foreach (var receiver in algo_owner_map)
             {
-                if (messageType == MessageBuilder.ASK)
+                if (messageType == MessageBuilder.ASK && msg is AskMessage askMessage)
                 {
-                    return receiver.RespondToAsk(msg);
+                    if (object.Equals(askMessage.PlayerUuid, receiver.Key))
+                        return ((BasePokerPlayer)receiver.Value).RespondToAsk(msg);
+                    else
+                        continue;
+                }
+                else if (msg is IPlayerMessage playerMessage)
+                {
+                    if (object.Equals(playerMessage.PlayerUuid, receiver.Key))
+                        ((BasePokerPlayer)receiver.Value).ReceiveNotification(msg);
+                    else
+                        continue;
                 }
                 else if (messageType == MessageBuilder.NOTIFICATION)
                 {
-                    receiver.ReceiveNotification(msg);
-                    return new Tuple<ActionType, int>(default, default);
+                    ((BasePokerPlayer)receiver.Value).ReceiveNotification(msg);
+                    
                 }
                 else
                 {
@@ -48,25 +58,25 @@ namespace NPokerEngine.Engine
                 }
             }
 
-            throw new NotImplementedException();
+            return new Tuple<ActionType, int>(default, default);
         }
 
-        private ICollection FetchReceivers(object address)
-        {
-            if ((int)address == -1)
-            {
-                return this.algo_owner_map.Values;
-            }
-            else
-            {
-                if (!this.algo_owner_map.ContainsKey(address))
-                {
-                    throw new ArgumentException(String.Format("Received message its address [%s] is unknown", address));
-                }
-                return new List<object> {
-                        this.algo_owner_map[address]
-                    };
-            }
-        }
+        //private ICollection FetchReceivers(object address)
+        //{
+        //    if ((int)address == -1)
+        //    {
+        //        return this.algo_owner_map.Values;
+        //    }
+        //    else
+        //    {
+        //        if (!this.algo_owner_map.ContainsKey(address))
+        //        {
+        //            throw new ArgumentException(String.Format("Received message its address [%s] is unknown", address));
+        //        }
+        //        return new List<object> {
+        //                this.algo_owner_map[address]
+        //            };
+        //    }
+        //}
     }
 }

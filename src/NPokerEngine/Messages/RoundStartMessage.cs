@@ -5,7 +5,7 @@ using System.Text;
 
 namespace NPokerEngine.Messages
 {
-    public class RoundStartMessage : IMessage
+    public class RoundStartMessage : IPlayerMessage
     {
         public MessageType MessageType => MessageType.ROUND_START_MESSAGE;
         public int RoundCount { get; set; }

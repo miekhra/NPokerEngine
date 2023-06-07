@@ -10,6 +10,6 @@ namespace NPokerEngine.Types
         public int MaxRound { get; set; }
         public float SmallBlindAmount { get; set; }
         public float Ante { get; set; }
-        public Dictionary<int, float> BlindStructure { get; set; }
+        public Dictionary<object, object> BlindStructure { get; set; }
     }
 }

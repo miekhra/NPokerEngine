@@ -10,17 +10,18 @@ namespace NPokerEngine.Engine
 {
     public abstract class BasePokerPlayer
     {
-        private string _uuid;
-        public string Uuid
-        {
-            get => _uuid;
-            set
-            {
-                if (!string.IsNullOrEmpty(_uuid))
-                    throw new ArgumentException($"Uuid already set {_uuid}");
-                _uuid = value;
-            }
-        }
+        //private string _uuid;
+        //public string Uuid
+        //{
+        //    get => _uuid;
+        //    set
+        //    {
+        //        if (!string.IsNullOrEmpty(_uuid))
+        //            throw new ArgumentException($"Uuid already set {_uuid}");
+        //        _uuid = value;
+        //    }
+        //}
+        public string Uuid { get; protected set; }
         public abstract Tuple<ActionType, int> DeclareAction(IEnumerable validActions, HoleCards holeCards, object roundState);
         public abstract void ReceiveGameStartMessage(GameStartMessage gameStartMessage);
         public abstract void ReceiveRoundStartMessage(RoundStartMessage roundStartMessage);
@@ -69,43 +70,6 @@ namespace NPokerEngine.Engine
                 default:
                     throw new ArgumentException($"{message.MessageType}");
             }
-            //object state;
-            //var msg_type = (string)message["message_type"];
-            //if (msg_type == "game_start_message")
-            //{
-            //    var info = ParseGameStartMessage(message);
-            //    ReceiveGameStartMessage(info);
-            //}
-            //else if (msg_type == "round_start_message")
-            //{
-            //    var _tup_1 = ParseRoundStartMessage(message);
-            //    var round_count = _tup_1.Item1;
-            //    var hole = _tup_1.Item2;
-            //    var seats = _tup_1.Item3;
-            //    ReceiveRoundStartMessage(round_count, hole, seats);
-            //}
-            //else if (msg_type == "street_start_message")
-            //{
-            //    var _tup_2 = ParseStreetStartMessage(message);
-            //    var street = _tup_2.Item1;
-            //    state = _tup_2.Item2;
-            //    ReceiveStreetStartMessage(street, state);
-            //}
-            //else if (msg_type == "game_update_message")
-            //{
-            //    var _tup_3 = ParseGameUpdateMessage(message);
-            //    var new_action = _tup_3.Item1;
-            //    var round_state = _tup_3.Item2;
-            //    ReceiveGameUpdateMessage(new_action, round_state);
-            //}
-            //else if (msg_type == "round_result_message")
-            //{
-            //    var _tup_4 = ParseRoundResultMessage(message);
-            //    var winners = _tup_4.Item1;
-            //    var hand_info = _tup_4.Item2;
-            //    state = _tup_4.Item3;
-            //    ReceiveRoundResultMessage(winners, hand_info, state);
-            //}
         }
 
         private Tuple<IEnumerable, HoleCards, object> ParseAskMessage(IDictionary message)
