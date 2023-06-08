@@ -1,7 +1,5 @@
-﻿using System;
+﻿using NPokerEngine.Types;
 using System.Collections.Generic;
-using System.Text;
-using NPokerEngine.Types;
 
 namespace NPokerEngine.Engine
 {

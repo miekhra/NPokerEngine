@@ -1,7 +1,6 @@
 ﻿using NPokerEngine.Types;
 using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace NPokerEngine.Messages
 {

@@ -1,11 +1,9 @@
-﻿using System;
-using System.Collections;
+﻿using NPokerEngine.Messages;
+using NPokerEngine.Types;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
-using System.Text;
-using NPokerEngine.Messages;
-using NPokerEngine.Types;
 
 namespace NPokerEngine.Engine
 {
@@ -51,7 +49,7 @@ namespace NPokerEngine.Engine
         public virtual RoundStartMessage BuildRoundStartMessage(int roundCount, int playerPos, Seats seats)
         {
             return new RoundStartMessage
-            { 
+            {
                 RoundCount = roundCount,
                 PlayerUuid = seats.Players[playerPos].Uuid,
                 HoleCards = seats.Players[playerPos].HoleCards.ToList(),

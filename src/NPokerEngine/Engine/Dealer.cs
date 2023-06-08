@@ -1,11 +1,9 @@
-﻿using System;
+﻿using NPokerEngine.Messages;
+using NPokerEngine.Types;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Text;
-using NPokerEngine.Messages;
-using NPokerEngine.Types;
 
 namespace NPokerEngine.Engine
 {
@@ -22,7 +20,7 @@ namespace NPokerEngine.Engine
 
         public Table Table => _table;
 
-        internal Dealer(Dealer dealer) 
+        internal Dealer(Dealer dealer)
         {
             this._smallBlindAmount = dealer._smallBlindAmount;
             this._ante = dealer._ante;
@@ -254,12 +252,12 @@ namespace NPokerEngine.Engine
             if (@default != null && players.Contains(@default))
             {
                 return (from player in players
-                            where player.Stack >= need_amount
-                            select player).SkipWhile(p => p != @default).FirstOrDefault();
+                        where player.Stack >= need_amount
+                        select player).SkipWhile(p => p != @default).FirstOrDefault();
             }
             return (from player in players
-                        where player.Stack >= need_amount
-                        select player).FirstOrDefault();
+                    where player.Stack >= need_amount
+                    select player).FirstOrDefault();
         }
 
         private void DisableNoMoneyPlayer(IEnumerable<Player> players)
@@ -315,7 +313,7 @@ namespace NPokerEngine.Engine
             if (this._smallBlindAmount == default)
             {
                 throw new Exception("small_blind_amount is not set!! You need to call 'dealer.set_small_blind_amount' before.");
-                }
+            }
             if (this._initialStack == default)
             {
                 throw new Exception("initial_stack is not set!! You need to call 'dealer.set_initial_stack' before.");
@@ -342,7 +340,7 @@ namespace NPokerEngine.Engine
             var chars = (from code in Enumerable.Range(97, 123 - 97)
                          select (char)code).ToList();
             return new string((from _ in Enumerable.Range(0, uuid_size)
-                            select chars[random.Next(chars.Count)]).ToArray());
+                               select chars[random.Next(chars.Count)]).ToArray());
         }
     }
 }

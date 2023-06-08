@@ -1,11 +1,5 @@
 ﻿using FluentAssertions;
 using FluentAssertions.Execution;
-using NPokerEngine.Engine;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace NPokerEngine.Tests.Types
 {

@@ -1,17 +1,8 @@
 ﻿using FluentAssertions;
 using FluentAssertions.Execution;
 using Moq;
-using NPokerEngine.Engine;
 using NPokerEngine.Messages;
-using NPokerEngine.Types;
-using System;
 using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
-using System.Xml.Linq;
 
 namespace NPokerEngine.Tests.Engine
 {
@@ -241,8 +232,8 @@ namespace NPokerEngine.Tests.Engine
         public void SetBlindStructureTest()
         {
             _dealer = new Dealer(5, 100, 3);
-            _dealer.SetBlindStructure(new Dictionary<object, object> 
-            { 
+            _dealer.SetBlindStructure(new Dictionary<object, object>
+            {
                 { 3, new Dictionary<string, float> { { "ante", 7 }, { "small_blind", 11 } } },
                 { 4, new Dictionary<string, float> { { "ante", 13 }, { "small_blind", 30 } } }
             });

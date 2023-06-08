@@ -1,15 +1,5 @@
-﻿using FluentAssertions.Execution;
-using FluentAssertions;
-using NPokerEngine.Engine;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Runtime.CompilerServices;
-using System.Numerics;
-using System.Collections;
-using System.Xml.Linq;
+﻿using FluentAssertions;
+using FluentAssertions.Execution;
 
 namespace NPokerEngine.Tests.Engine
 {
@@ -247,7 +237,7 @@ namespace NPokerEngine.Tests.Engine
 
             legalActions.Should().SatisfyRespectively
                 (
-                    first =>first.Should().BeEquivalentTo(new KeyValuePair<ActionType, AmountInterval>(ActionType.FOLD, AmountInterval.Empty)),
+                    first => first.Should().BeEquivalentTo(new KeyValuePair<ActionType, AmountInterval>(ActionType.FOLD, AmountInterval.Empty)),
                     second => second.Should().BeEquivalentTo(new KeyValuePair<ActionType, AmountInterval>(ActionType.CALL, new AmountInterval(10f))),
                     third => third.Should().BeEquivalentTo(new KeyValuePair<ActionType, AmountInterval>(ActionType.RAISE, new AmountInterval(15f, 100f)))
                 );

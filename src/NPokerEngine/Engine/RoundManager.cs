@@ -3,10 +3,7 @@ using NPokerEngine.Types;
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Text;
 
 namespace NPokerEngine.Engine
 {
@@ -41,7 +38,7 @@ namespace NPokerEngine.Engine
             this.CorrectBlind(small_blind_amount, table);
             this.DealHolecard(table.Deck, table.Seats.Players);
             var startMessages = this.RoundStartMessage(round_count, table);
-            var (startState,  street_msgs) = this.StartStreet(state);
+            var (startState, street_msgs) = this.StartStreet(state);
             state = startState;
             startMessages.AddRange(street_msgs);
 
@@ -324,7 +321,7 @@ namespace NPokerEngine.Engine
             }
 
             var max_pay = (from p in players
-                               select p.PaidSum()).Max();
+                           select p.PaidSum()).Max();
             var everyone_agreed = players.Count == (from p in players
                                                     where this.IsAgreed((int)max_pay, p)
                                                     select p).ToList().Count;
@@ -337,7 +334,7 @@ namespace NPokerEngine.Engine
         {
             if (state.Table.Seats.ActivePlayersCount() == 0)
             {
-                throw new Exception ("[__is_everyone_agreed] no-active-players!!");
+                throw new Exception("[__is_everyone_agreed] no-active-players!!");
             }
         }
 

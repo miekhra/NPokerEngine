@@ -1,8 +1,7 @@
-﻿using System;
+﻿using NPokerEngine.Types;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using NPokerEngine.Types;
 
 namespace NPokerEngine.Engine
 {
@@ -10,8 +9,8 @@ namespace NPokerEngine.Engine
     {
         private static HandEvaluator _instance;
 
-        private HandEvaluator() 
-        { 
+        private HandEvaluator()
+        {
         }
 
         public static HandEvaluator Instance
@@ -125,7 +124,7 @@ namespace NPokerEngine.Engine
         {
             result = 0;
             var searchResult = SearchFullHouse(cards);
-            if (searchResult.Item1 == 0 ||  searchResult.Item2 == 0) return false;
+            if (searchResult.Item1 == 0 || searchResult.Item2 == 0) return false;
 
             result = searchResult.Item1 << 4 | searchResult.Item2;
             return true;
@@ -194,7 +193,7 @@ namespace NPokerEngine.Engine
         {
             var bitMemo = cards.Select(c => c.Rank).Aggregate(0, (memo, rank) => memo | 1 << rank);
             var rank = -1;
-            foreach (var r in Enumerable.Range(2, 15 - 2)) 
+            foreach (var r in Enumerable.Range(2, 15 - 2))
             {
                 if (Enumerable.Range(0, 5).Aggregate(1, (acc, i) => (acc & (bitMemo >> (r + i) & 1)) == 1 ? 1 : 0) >= 1)
                     rank = r;

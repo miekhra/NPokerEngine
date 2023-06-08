@@ -1,32 +1,31 @@
-﻿using System;
+﻿using NPokerEngine.Types;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using NPokerEngine.Types;
 
 namespace NPokerEngine.Engine
 {
     public class GameEvaluator
     {
         private static GameEvaluator _instance;
-        public static GameEvaluator Instance 
-        { 
-            get 
+        public static GameEvaluator Instance
+        {
+            get
             {
-				_instance = _instance ?? new GameEvaluator();
-				return _instance; 
-            } 
+                _instance = _instance ?? new GameEvaluator();
+                return _instance;
+            }
         }
 
         private IHandEvaluator _handEvaluator;
-		private GameEvaluator() { }
+        private GameEvaluator() { }
 
-        public void SetHandEvaluator(IHandEvaluator handEvaluator) 
+        public void SetHandEvaluator(IHandEvaluator handEvaluator)
         {
             _handEvaluator = handEvaluator;
         }
 
-		public (List<Player> winners, Dictionary<string, HandRankInfo> handInfoMap, Dictionary<int, float> prizeMap) Judge(Table table)
+        public (List<Player> winners, Dictionary<string, HandRankInfo> handInfoMap, Dictionary<int, float> prizeMap) Judge(Table table)
         {
             var winners = this.FindWinnersFrom(table.Seats.Players, table.CommunityCards);
             var hand_info = this.GenHandInfoIfNeeded(table.Seats.Players, table.CommunityCards);
@@ -80,8 +79,8 @@ namespace NPokerEngine.Engine
         private Dictionary<string, HandRankInfo> GenHandInfoIfNeeded(IEnumerable<Player> players, IEnumerable<Card> community)
         {
             var activePlayers = (from player in players
-                                  where player.IsActive()
-                                  select player).ToList();
+                                 where player.IsActive()
+                                 select player).ToList();
 
             var handInfoMap = new Dictionary<string, HandRankInfo>();
 
@@ -96,13 +95,13 @@ namespace NPokerEngine.Engine
         private PotInfo GetMainPot(IEnumerable<Player> players, IEnumerable<PotInfo> sidepots)
         {
             var maxPay = (from pay in this.GetPayInfo(players)
-                               select pay.Amount).Max();
+                          select pay.Amount).Max();
             return new PotInfo
             {
                 Amount = this.GetPlayersPaySum(players) - this.GetSidepotsSum(sidepots),
                 Eligibles = (from player in players
-                                 where player.PayInfo.Amount == maxPay
-                                 select player).ToList()
+                             where player.PayInfo.Amount == maxPay
+                             select player).ToList()
             };
         }
 
@@ -115,7 +114,7 @@ namespace NPokerEngine.Engine
         private List<PotInfo> GetSidePots(IEnumerable<Player> players)
         {
             var payAmounts = (from payinfo in this.FetchAllInPayInfo(players)
-                               select payinfo.Amount).ToList();
+                              select payinfo.Amount).ToList();
 
             var sidePots = new List<PotInfo>();
             foreach (var payAmount in payAmounts)
@@ -163,8 +162,8 @@ namespace NPokerEngine.Engine
         {
             var payinfo = this.GetPayInfo(players);
             var allinInfo = (from info in payinfo
-                              where info.Status == PayInfoStatus.ALLIN
-                              select info).ToList();
+                             where info.Status == PayInfoStatus.ALLIN
+                             select info).ToList();
             return allinInfo.OrderBy(info => info.Amount).ToList();
         }
 

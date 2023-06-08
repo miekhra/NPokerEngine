@@ -1,17 +1,6 @@
 ﻿using FluentAssertions;
 using FluentAssertions.Execution;
 using Moq;
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Net.Http.Headers;
-using System.Numerics;
-using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
-using System.Xml.Linq;
 
 namespace NPokerEngine.Tests.Engine
 {
@@ -35,7 +24,7 @@ namespace NPokerEngine.Tests.Engine
         [TestMethod]
         public void JudgeWithoutAllinTest()
         {
-            var players = Enumerable.Range(0,3).Select(ix => CreatePlayerWithPayInfo(ix.ToString(), 5, PayInfoStatus.PAY_TILL_END)).ToList();
+            var players = Enumerable.Range(0, 3).Select(ix => CreatePlayerWithPayInfo(ix.ToString(), 5, PayInfoStatus.PAY_TILL_END)).ToList();
             var table = SetupTable(players);
 
             var handEvalMock = new Mock<IHandEvaluator>();
@@ -206,7 +195,7 @@ namespace NPokerEngine.Tests.Engine
 
         private Player[] SetupPlayers()
         {
-            return Enumerable.Range(0, 3).Select(t => new Player("uuid", 100, name: t.ToString() )).ToArray();
+            return Enumerable.Range(0, 3).Select(t => new Player("uuid", 100, name: t.ToString())).ToArray();
         }
 
         private IEnumerable<Player> SetupPlayersForJudge()

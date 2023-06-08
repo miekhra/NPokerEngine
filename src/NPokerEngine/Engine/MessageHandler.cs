@@ -1,11 +1,7 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Linq;
-using System.Text;
-using NPokerEngine.Messages;
+﻿using NPokerEngine.Messages;
 using NPokerEngine.Types;
+using System;
+using System.Collections.Generic;
 
 namespace NPokerEngine.Engine
 {
@@ -29,7 +25,6 @@ namespace NPokerEngine.Engine
 
         public Tuple<ActionType, int> ProcessMessage(IMessage msg)
         {
-            //var receivers = this.FetchReceivers(address);
             var messageType = MessageBuilder.GetMessageType(msg);
             foreach (var receiver in algo_owner_map)
             {
@@ -50,7 +45,7 @@ namespace NPokerEngine.Engine
                 else if (messageType == MessageBuilder.NOTIFICATION)
                 {
                     ((BasePokerPlayer)receiver.Value).ReceiveNotification(msg);
-                    
+
                 }
                 else
                 {
@@ -60,23 +55,5 @@ namespace NPokerEngine.Engine
 
             return new Tuple<ActionType, int>(default, default);
         }
-
-        //private ICollection FetchReceivers(object address)
-        //{
-        //    if ((int)address == -1)
-        //    {
-        //        return this.algo_owner_map.Values;
-        //    }
-        //    else
-        //    {
-        //        if (!this.algo_owner_map.ContainsKey(address))
-        //        {
-        //            throw new ArgumentException(String.Format("Received message its address [%s] is unknown", address));
-        //        }
-        //        return new List<object> {
-        //                this.algo_owner_map[address]
-        //            };
-        //    }
-        //}
     }
 }

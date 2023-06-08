@@ -12,7 +12,7 @@ namespace NPokerEngine.Types
         public const byte HEART = 8;
         public const byte SPADE = 16;
 
-        public static Dictionary<byte, string> SUIT_MAP = new Dictionary<byte, string> 
+        public static Dictionary<byte, string> SUIT_MAP = new Dictionary<byte, string>
         {
             { CLUB, "C"},
             { DIAMOND, "D"},
@@ -20,7 +20,7 @@ namespace NPokerEngine.Types
             { SPADE, "S"}
         };
 
-        public static Dictionary<byte, string> RANK_MAP = new Dictionary<byte, string> 
+        public static Dictionary<byte, string> RANK_MAP = new Dictionary<byte, string>
         {
             { 2, "2"},
             { 3, "3"},

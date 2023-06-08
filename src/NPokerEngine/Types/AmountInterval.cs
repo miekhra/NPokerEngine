@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace NPokerEngine.Types
 {
@@ -20,7 +18,7 @@ namespace NPokerEngine.Types
 
         public static AmountInterval Empty => new AmountInterval(0);
 
-        public Tuple<float, float?> AsTuple() 
+        public Tuple<float, float?> AsTuple()
             => new Tuple<float, float?>(_amount, _maxAmount);
     }
 }

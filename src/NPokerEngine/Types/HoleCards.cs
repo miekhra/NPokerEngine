@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace NPokerEngine.Types
+﻿namespace NPokerEngine.Types
 {
     public class HoleCards
     {

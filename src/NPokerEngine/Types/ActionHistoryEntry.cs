@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace NPokerEngine.Types
 {
@@ -14,12 +12,12 @@ namespace NPokerEngine.Types
 
         public object Clone()
             => new ActionHistoryEntry
-            { 
-                Uuid = Uuid, 
-                ActionType = ActionType, 
-                Amount = Amount, 
-                AddAmount = AddAmount, 
-                Paid = Paid 
-            }; 
+            {
+                Uuid = Uuid,
+                ActionType = ActionType,
+                Amount = Amount,
+                AddAmount = AddAmount,
+                Paid = Paid
+            };
     }
 }

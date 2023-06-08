@@ -3,24 +3,11 @@ using NPokerEngine.Types;
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.IO;
-using System.Text;
 
 namespace NPokerEngine.Engine
 {
     public abstract class BasePokerPlayer
     {
-        //private string _uuid;
-        //public string Uuid
-        //{
-        //    get => _uuid;
-        //    set
-        //    {
-        //        if (!string.IsNullOrEmpty(_uuid))
-        //            throw new ArgumentException($"Uuid already set {_uuid}");
-        //        _uuid = value;
-        //    }
-        //}
         public string Uuid { get; protected set; }
         public abstract Tuple<ActionType, int> DeclareAction(IEnumerable validActions, HoleCards holeCards, object roundState);
         public abstract void ReceiveGameStartMessage(GameStartMessage gameStartMessage);
@@ -32,15 +19,10 @@ namespace NPokerEngine.Engine
         // Called from Dealer when ask message received from RoundManager
         public Tuple<ActionType, int> RespondToAsk(IMessage message)
         {
-            //var _tup_1 = ParseAskMessage(message);
-            //var valid_actions = _tup_1.Item1;
-            //var hole_card = _tup_1.Item2;
-            //var round_state = _tup_1.Item3;
             if (message is not AskMessage askMessage)
                 throw new InvalidCastException($"Invalid ask type {message.GetType().Name}");
-            //return DeclareAction(valid_actions, hole_card, round_state);
             var askPlayer = askMessage.State.Table.Seats[askMessage.PlayerUuid];
-            return DeclareAction(askMessage.ValidActions, new HoleCards { FirstCard = askPlayer.HoleCards[0], SecondCard = askPlayer.HoleCards[1] }, askMessage.State );
+            return DeclareAction(askMessage.ValidActions, new HoleCards { FirstCard = askPlayer.HoleCards[0], SecondCard = askPlayer.HoleCards[1] }, askMessage.State);
         }
 
         // Called from Dealer when notification received from RoundManager

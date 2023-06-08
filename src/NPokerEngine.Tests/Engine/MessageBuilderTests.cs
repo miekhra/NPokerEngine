@@ -1,14 +1,5 @@
 ﻿using FluentAssertions;
 using FluentAssertions.Execution;
-using Microsoft.VisualStudio.TestPlatform.CommunicationUtilities;
-using NPokerEngine.Messages;
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace NPokerEngine.Tests.Engine
 {
@@ -157,19 +148,19 @@ namespace NPokerEngine.Tests.Engine
                 Ante = 3,
                 BlindStructure = null
             };
-            //=> new Dictionary<string, object>
-            //{
-            //    { "initial_stack", 100 },
-            //    { "max_round", 10 },
-            //    { "small_blind_amount", 5 },
-            //    { "ante", 3 },
-            //    { "blind_structure", null }
-            //};
+        //=> new Dictionary<string, object>
+        //{
+        //    { "initial_stack", 100 },
+        //    { "max_round", 10 },
+        //    { "small_blind_amount", 5 },
+        //    { "ante", 3 },
+        //    { "blind_structure", null }
+        //};
 
         private Seats SetupSeats()
         {
             var seats = new Seats();
-            SetupPlayers().ForEach(p =>  seats.Sitdown(p));
+            SetupPlayers().ForEach(p => seats.Sitdown(p));
             return seats;
         }
 
