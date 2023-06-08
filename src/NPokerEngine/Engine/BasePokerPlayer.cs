@@ -9,6 +9,7 @@ namespace NPokerEngine.Engine
     public abstract class BasePokerPlayer
     {
         public string Uuid { get; protected set; }
+        public string Name { get; protected set; }
         public abstract Tuple<ActionType, int> DeclareAction(IEnumerable validActions, HoleCards holeCards, object roundState);
         public abstract void ReceiveGameStartMessage(GameStartMessage gameStartMessage);
         public abstract void ReceiveRoundStartMessage(RoundStartMessage roundStartMessage);

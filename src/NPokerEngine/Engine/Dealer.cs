@@ -49,8 +49,11 @@ namespace NPokerEngine.Engine
         public void RegisterPlayer(string player_name, BasePokerPlayer algorithm)
         {
             this.ConfigCheck();
-            var uuid = this.EscortPlayerToTable(player_name);
-            //algorithm.Uuid = (string)uuid;
+            var uuid = this.EscortPlayerToTable(player_name, algorithm.Uuid);
+            //if (algorithm.Uuid != (string)uuid)
+            //{
+            //    algorithm.Uuid = (string)uuid;
+            //}
             this.RegisterAlgorithmToMessageHandler(uuid, algorithm);
         }
 
@@ -122,7 +125,7 @@ namespace NPokerEngine.Engine
 
         private Tuple<int, int> UpdateForcedBetAmount(int ante, int sb_amount, int round_count, Dictionary<object, object> blind_structure)
         {
-            if (blind_structure.ContainsKey(round_count))
+            if (blind_structure != null && blind_structure.ContainsKey(round_count))
             {
                 var update_info = (IDictionary)blind_structure[round_count];
                 var msg = this._messageSummarizer.SummairzeBlindLevelUpdate(round_count, ante, update_info["ante"], sb_amount, update_info["small_blind"]);
@@ -138,10 +141,13 @@ namespace NPokerEngine.Engine
             this._messageHandler.RegisterAlgorithm(uuid, algorithm);
         }
 
-        private object EscortPlayerToTable(string player_name)
+        private object EscortPlayerToTable(string player_name, string uuid = null)
         {
-            var uuid = this.FetchUuid();
-            var player = new Player((string)uuid, this._initialStack, player_name);
+            if (string.IsNullOrWhiteSpace(uuid))
+            {
+                uuid = (string)this.FetchUuid();
+            }
+            var player = new Player(uuid, this._initialStack, player_name);
             this._table.Seats.Sitdown(player);
             return uuid;
         }
@@ -288,24 +294,8 @@ namespace NPokerEngine.Engine
                 Ante = this._ante,
                 InitialStack = this._initialStack,
                 SmallBlindAmount = this._smallBlindAmount,
-                BlindStructure = this._blindStructure//.ToDictionary(k => Convert.ToInt32(k.Key), v => Convert.ToSingle(v.Value))
+                BlindStructure = this._blindStructure
             };
-            //return new Dictionary<string, object> {
-            //        {
-            //            "initial_stack",
-            //            this._initialStack},
-            //        {
-            //            "max_round",
-            //            max_round},
-            //        {
-            //            "small_blind_amount",
-            //            this._smallBlindAmount},
-            //        {
-            //            "ante",
-            //            this._ante},
-            //        {
-            //            "blind_structure",
-            //            this._blindStructure}};
         }
 
         private void ConfigCheck()
