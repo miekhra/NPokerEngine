@@ -56,19 +56,10 @@ namespace NPokerEngine.Engine
             {
                 table.Seats.Players.ForEach(p => p.SaveStreetActionHistories(state.Street));
                 state.Street = (StreetType)(Convert.ToByte(state.Street) + 1);
-                var _tup_1 = this.StartStreet(state);
-                state = _tup_1.Item1;
-                var street_msgs = _tup_1.Item2;
-
-                var messagesList = new List<IMessage>()
-                {
-                    (IMessage)update_msg
-                };
-
-                foreach (var item in (IEnumerable)street_msgs)
-                {
-                    messagesList.Add((IMessage)item);
-                }
+                var (updatedState, startStreetMessages) = this.StartStreet(state);
+                state = updatedState;
+                var messagesList = new List<IMessage>() { update_msg };
+                messagesList.AddRange(startStreetMessages);
 
                 return Tuple.Create(state, messagesList);
             }
@@ -160,13 +151,13 @@ namespace NPokerEngine.Engine
                 state.Table.AddCommunityCard(card);
             }
             // BB goes first in Heads-Up
-            if (state.Table.Seats.Players.Count == 2)
-            {
-                if (state.NextPlayerIx != -1)
-                {
-                    state.NextPlayerIx = state.Table.NextAskWaitingPlayerPosition(state.NextPlayerIx);
-                }
-            }
+            //if (state.Table.Seats.Players.Count == 2)
+            //{
+            //    if (state.NextPlayerIx != -1)
+            //    {
+            //        state.NextPlayerIx = state.Table.NextAskWaitingPlayerPosition(state.NextPlayerIx);
+            //    }
+            //}
             return this.ForwardStreet(state);
         }
 
@@ -174,13 +165,13 @@ namespace NPokerEngine.Engine
         {
             state.Table.AddCommunityCard(state.Table.Deck.DrawCard());
             // BB goes first in Heads-Up
-            if (state.Table.Seats.Players.Count == 2)
-            {
-                if (state.NextPlayerIx != -1)
-                {
-                    state.NextPlayerIx = state.Table.NextAskWaitingPlayerPosition(state.NextPlayerIx);
-                }
-            }
+            //if (state.Table.Seats.Players.Count == 2)
+            //{
+            //    if (state.NextPlayerIx != -1)
+            //    {
+            //        state.NextPlayerIx = state.Table.NextAskWaitingPlayerPosition(state.NextPlayerIx);
+            //    }
+            //}
             return this.ForwardStreet(state);
         }
 
@@ -188,22 +179,19 @@ namespace NPokerEngine.Engine
         {
             state.Table.AddCommunityCard(state.Table.Deck.DrawCard());
             // BB goes first in Heads-Up
-            if (state.Table.Seats.Players.Count == 2)
-            {
-                if (state.NextPlayerIx != -1)
-                {
-                    state.NextPlayerIx = state.Table.NextAskWaitingPlayerPosition(state.NextPlayerIx);
-                }
-            }
+            //if (state.Table.Seats.Players.Count == 2)
+            //{
+            //    if (state.NextPlayerIx != -1)
+            //    {
+            //        state.NextPlayerIx = state.Table.NextAskWaitingPlayerPosition(state.NextPlayerIx);
+            //    }
+            //}
             return this.ForwardStreet(state);
         }
 
         private (GameState state, List<IMessage> messages) Showdown(GameState state)
         {
-            var _tup_1 = GameEvaluator.Instance.Judge((Table)state.Table);
-            var winners = _tup_1.Item1;
-            var hand_info = _tup_1.Item2;
-            var prize_map = _tup_1.Item3;
+            var (winners, hand_info, prize_map) = GameEvaluator.Instance.Judge((Table)state.Table);
             this.PrizeToWinners(state.Table.Seats.Players, prize_map);
             var result_message = MessageBuilder.Instance.BuildRoundResultMessage(state.RoundCount, winners, hand_info, state);
             state.Table.Reset();
@@ -257,9 +245,7 @@ namespace NPokerEngine.Engine
 
         private GameState UpdateStateByAction(GameState state, ActionType action, float bet_amount)
         {
-            var _tup_1 = ActionChecker.Instance.CorrectAction(state.Table.Seats.Players, state.NextPlayerIx, state.SmallBlindAmount, action, bet_amount);
-            action = _tup_1.Item1;
-            bet_amount = (int)_tup_1.Item2;
+            (action, bet_amount) = ActionChecker.Instance.CorrectAction(state.Table.Seats.Players, state.NextPlayerIx, state.SmallBlindAmount, action, bet_amount);
             var next_player = state.Table.Seats.Players[state.NextPlayerIx];
             if (ActionChecker.Instance.IsAllin(next_player, action, bet_amount))
             {

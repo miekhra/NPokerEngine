@@ -169,10 +169,10 @@ namespace NPokerEngine.Engine
         private bool TryEvalOnePair(IEnumerable<Card> cards, out int result)
         {
             var rank = 0;
-            var memo = 0;
+            long memo = 0;
             foreach (var card in cards)
             {
-                var mask = 1 << card.Rank;
+                var mask = (long)1 << card.Rank;
                 if ((memo & mask) != 0)
                 {
                     rank = Math.Max(rank, card.Rank);
@@ -191,7 +191,7 @@ namespace NPokerEngine.Engine
 
         private int SearchStraight(IEnumerable<Card> cards)
         {
-            var bitMemo = cards.Select(c => c.Rank).Aggregate(0, (memo, rank) => memo | 1 << rank);
+            long bitMemo = cards.Select(c => c.Rank).Aggregate((long)0, (memo, rank) => memo | (long)1 << rank);
             var rank = -1;
             foreach (var r in Enumerable.Range(2, 15 - 2))
             {
@@ -282,7 +282,12 @@ namespace NPokerEngine.Engine
         private int SearchThreeCards(IEnumerable<Card> cards)
         {
             var rank = -1;
-            var bitMemo = cards.Aggregate(0, (memo, card) => memo + (1 << (card.Rank - 1) * 3));
+            long bitMemo = 0;
+            foreach (var card in cards)
+            {
+                bitMemo += ((long)1 << (card.Rank - 1) * 3);
+            }
+            //cards.Aggregate(0, (memo, card) => memo + (1 << (card.Rank - 1) * 3));
             foreach (var r in Enumerable.Range(2, 15 - 2))
             {
                 bitMemo >>= 3;
@@ -298,10 +303,10 @@ namespace NPokerEngine.Engine
         private List<int> SearchTwoPairs(IEnumerable<Card> cards)
         {
             var ranks = new List<int>();
-            var memo = 0;
+            long memo = 0;
             foreach (var card in cards)
             {
-                var mask = 1 << card.Rank;
+                var mask = (long)1 << card.Rank;
                 if ((memo & mask) != 0 && !ranks.Contains(card.Rank))
                 {
                     ranks.Add(card.Rank);

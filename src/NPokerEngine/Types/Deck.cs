@@ -10,7 +10,7 @@ namespace NPokerEngine.Types
     {
         internal List<Card> _deck;
         internal ReadOnlyCollection<int> _cheatCardIds;
-        private int _popIndex = 0;
+        internal int _popIndex = 0;
         private bool _isCheat;
 
         public bool IsCheat => _isCheat;

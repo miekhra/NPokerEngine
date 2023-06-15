@@ -70,7 +70,7 @@ namespace NPokerEngine.Engine
                                  select player).ToList();
             var scores = (from player in activePlayers
                           select scorePlayer(player)).ToList();
-            var bestScore = scores.Max();
+            var bestScore = scores.Any() ? scores.Max() : default;
             var scoreWithPlayers = scores.Zip(activePlayers, (score, player) => Tuple.Create(score, player));
             var winners = scoreWithPlayers.Where(t => t.Item1 == bestScore).Select(t => t.Item2).ToList();
             return winners;

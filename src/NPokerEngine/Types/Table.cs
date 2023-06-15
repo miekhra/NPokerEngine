@@ -12,9 +12,9 @@ namespace NPokerEngine.Types
 
         private Deck _deck;
         internal int _dealerButton;
-        private int? _sbPosition, _bbPosition;
+        internal int? _sbPosition, _bbPosition;
         internal Seats _seats;
-        private List<Card> _communityCards;
+        internal List<Card> _communityCards;
 
         public Seats Seats => _seats;
         public int DealerButton => _dealerButton;

@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Diagnostics;
 
 namespace NPokerEngine.Types
 {
+    [DebuggerDisplay("{ActionType},{Amount},{AddAmount},{Paid}")]
     public class ActionHistoryEntry : ICloneable
     {
         public string Uuid { get; set; }

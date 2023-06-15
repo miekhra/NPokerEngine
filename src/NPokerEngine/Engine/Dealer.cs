@@ -255,15 +255,9 @@ namespace NPokerEngine.Engine
 
         private Player FindFirstElligiblePlayer(IEnumerable<Player> players, int need_amount, Player @default = null)
         {
-            if (@default != null && players.Contains(@default))
-            {
-                return (from player in players
-                        where player.Stack >= need_amount
-                        select player).SkipWhile(p => p != @default).FirstOrDefault();
-            }
             return (from player in players
                     where player.Stack >= need_amount
-                    select player).FirstOrDefault();
+                    select player).FirstOrDefault() ?? @default;
         }
 
         private void DisableNoMoneyPlayer(IEnumerable<Player> players)
