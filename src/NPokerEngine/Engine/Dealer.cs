@@ -7,7 +7,7 @@ using System.Linq;
 
 namespace NPokerEngine.Engine
 {
-    public class Dealer
+    internal class Dealer
     {
         private int _smallBlindAmount;
         private int _ante;

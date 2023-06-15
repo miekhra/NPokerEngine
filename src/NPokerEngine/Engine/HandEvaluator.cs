@@ -5,7 +5,7 @@ using System.Linq;
 
 namespace NPokerEngine.Engine
 {
-    public class HandEvaluator : IHandEvaluator
+    internal class HandEvaluator : IHandEvaluator
     {
         private static HandEvaluator _instance;
 

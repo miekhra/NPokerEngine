@@ -7,7 +7,7 @@ using System.Linq;
 
 namespace NPokerEngine.Engine
 {
-    public class MessageBuilder
+    internal class MessageBuilder
     {
         public const string ASK = "ask";
         public const string NOTIFICATION = "notification";

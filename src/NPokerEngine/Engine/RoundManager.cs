@@ -7,7 +7,7 @@ using System.Linq;
 
 namespace NPokerEngine.Engine
 {
-    public class RoundManager
+    internal class RoundManager
     {
         private static RoundManager _instance;
 

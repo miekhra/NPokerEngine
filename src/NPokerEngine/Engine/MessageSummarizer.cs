@@ -6,7 +6,7 @@ using System.Linq;
 
 namespace NPokerEngine.Engine
 {
-    public class MessageSummarizer
+    internal class MessageSummarizer
     {
         private int _verbose;
 

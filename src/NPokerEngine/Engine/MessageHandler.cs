@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 namespace NPokerEngine.Engine
 {
-    public class MessageHandler
+    internal class MessageHandler
     {
         internal Dictionary<object, object> algo_owner_map;
 

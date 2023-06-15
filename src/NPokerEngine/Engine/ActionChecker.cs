@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace NPokerEngine.Engine
 {
-    public class ActionChecker
+    internal class ActionChecker
     {
         private static List<ActionType> __raiseActionTypes = new List<ActionType>() { ActionType.RAISE, ActionType.SMALL_BLIND, ActionType.BIG_BLIND };
 

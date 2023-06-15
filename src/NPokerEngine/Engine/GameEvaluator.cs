@@ -5,7 +5,7 @@ using System.Linq;
 
 namespace NPokerEngine.Engine
 {
-    public class GameEvaluator
+    internal class GameEvaluator
     {
         private static GameEvaluator _instance;
         public static GameEvaluator Instance
