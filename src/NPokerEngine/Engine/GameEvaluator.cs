@@ -5,26 +5,8 @@ using System.Linq;
 
 namespace NPokerEngine.Engine
 {
-    internal class GameEvaluator
+    internal class GameEvaluator : Singleton<GameEvaluator>
     {
-        private static GameEvaluator _instance;
-        public static GameEvaluator Instance
-        {
-            get
-            {
-                _instance = _instance ?? new GameEvaluator();
-                return _instance;
-            }
-        }
-
-        private IHandEvaluator _handEvaluator;
-        private GameEvaluator() { }
-
-        public void SetHandEvaluator(IHandEvaluator handEvaluator)
-        {
-            _handEvaluator = handEvaluator;
-        }
-
         public (List<Player> winners, Dictionary<string, HandRankInfo> handInfoMap, Dictionary<int, float> prizeMap) Judge(Table table)
         {
             var winners = this.FindWinnersFrom(table.Seats.Players, table.CommunityCards);
@@ -64,7 +46,7 @@ namespace NPokerEngine.Engine
 
         internal List<Player> FindWinnersFrom(IEnumerable<Player> players, IEnumerable<Card> community)
         {
-            Func<Player, int> scorePlayer = player => (_handEvaluator ?? HandEvaluator.Instance).EvalHand(player.HoleCards, community);
+            Func<Player, int> scorePlayer = player => HandEvaluatorResolver.Get().EvalHand(player.HoleCards, community);
             var activePlayers = (from player in players
                                  where player.IsActive()
                                  select player).ToList();
@@ -87,7 +69,7 @@ namespace NPokerEngine.Engine
             if (activePlayers.Count == 1) return handInfoMap;
 
             foreach (var player in activePlayers)
-                handInfoMap[player.Uuid] = (_handEvaluator ?? HandEvaluator.Instance).GenHandRankInfo(player.HoleCards, community);
+                handInfoMap[player.Uuid] = HandEvaluatorResolver.Get().GenHandRankInfo(player.HoleCards, community);
 
             return handInfoMap;
         }

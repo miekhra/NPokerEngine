@@ -4,21 +4,9 @@ using System.Linq;
 
 namespace NPokerEngine.Engine
 {
-    internal class ActionChecker
+    internal class ActionChecker : Singleton<ActionChecker>
     {
         private static List<ActionType> __raiseActionTypes = new List<ActionType>() { ActionType.RAISE, ActionType.SMALL_BLIND, ActionType.BIG_BLIND };
-
-        private static ActionChecker _instance;
-        public static ActionChecker Instance
-        {
-            get
-            {
-                _instance = _instance ?? new ActionChecker();
-                return _instance;
-            }
-        }
-
-        private ActionChecker() { }
 
         public (ActionType action, float amount) CorrectAction(
             List<Player> players,

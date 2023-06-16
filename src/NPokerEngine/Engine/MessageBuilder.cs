@@ -7,7 +7,7 @@ using System.Linq;
 
 namespace NPokerEngine.Engine
 {
-    internal class MessageBuilder
+    internal class MessageBuilder : Singleton<MessageBuilder>
     {
         public const string ASK = "ask";
         public const string NOTIFICATION = "notification";
@@ -21,18 +21,6 @@ namespace NPokerEngine.Engine
                     k => k,
                     v => ((CategoryAttribute)(typeof(MessageType).GetMember(v.ToString()).First().GetCustomAttributes(typeof(CategoryAttribute), false)[0])).Category
                 );
-
-        private static MessageBuilder _instance;
-        public static MessageBuilder Instance
-        {
-            get
-            {
-                _instance = _instance ?? new MessageBuilder();
-                return _instance;
-            }
-        }
-
-        internal MessageBuilder() { }
 
         public GameStartMessage BuildGameStartMessage(GameConfig config, Seats seats)
         {

@@ -7,27 +7,8 @@ using System.Linq;
 
 namespace NPokerEngine.Engine
 {
-    internal class RoundManager
+    internal class RoundManager : Singleton<RoundManager>
     {
-        private static RoundManager _instance;
-
-        private RoundManager()
-        {
-        }
-
-        public static RoundManager Instance
-        {
-            get
-            {
-                if (_instance == null)
-                {
-                    _instance = new RoundManager();
-                }
-
-                return _instance;
-            }
-        }
-
         public (GameState roundState, List<IMessage> messages) StartNewRound(int round_count, float small_blind_amount, float ante_amount, Table table)
         {
             var _state = this.GenerateInitialState(round_count, small_blind_amount, table);

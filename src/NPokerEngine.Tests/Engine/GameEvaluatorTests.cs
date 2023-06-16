@@ -12,7 +12,7 @@ namespace NPokerEngine.Tests.Engine
         [TestInitialize]
         public void Initialize()
         {
-            _gameEvaluator.SetHandEvaluator(null);
+            HandEvaluatorResolver.ResoreDefault();
         }
 
         [TestCleanup]
@@ -29,7 +29,7 @@ namespace NPokerEngine.Tests.Engine
 
             var handEvalMock = new Mock<IHandEvaluator>();
             SetupEvalHandSequence(handEvalMock, new int[] { 0, 1, 0 }, 3);
-            _gameEvaluator.SetHandEvaluator(handEvalMock.Object);
+            HandEvaluatorResolver.Register(handEvalMock.Object);
 
             var judgeResult = _gameEvaluator.Judge(table);
 
@@ -50,7 +50,7 @@ namespace NPokerEngine.Tests.Engine
 
             var handEvalMock = new Mock<IHandEvaluator>();
             SetupEvalHandSequence(handEvalMock, new int[] { 0, 0 }, 4);
-            _gameEvaluator.SetHandEvaluator(handEvalMock.Object);
+            HandEvaluatorResolver.Register(handEvalMock.Object);
 
             var judgeResult = _gameEvaluator.Judge(table);
 
@@ -76,7 +76,7 @@ namespace NPokerEngine.Tests.Engine
 
             var handEvalMock = new Mock<IHandEvaluator>();
             SetupEvalHandSequence(handEvalMock, new int[] { 0, 2, 1 }, 6);
-            _gameEvaluator.SetHandEvaluator(handEvalMock.Object);
+            HandEvaluatorResolver.Register(handEvalMock.Object);
 
             var judgeResult = _gameEvaluator.Judge(table);
 
@@ -103,7 +103,7 @@ namespace NPokerEngine.Tests.Engine
 
             var handEvalMock = new Mock<IHandEvaluator>();
             SetupEvalHandSequence(handEvalMock, new int[] { 1, 2, 0 }, multiplier: 3, extra: new int[] { 1, 0, 0 });
-            _gameEvaluator.SetHandEvaluator(handEvalMock.Object);
+            HandEvaluatorResolver.Register(handEvalMock.Object);
 
             var judgeResult = _gameEvaluator.Judge(table);
 
@@ -129,7 +129,7 @@ namespace NPokerEngine.Tests.Engine
 
             var handEvalMock = new Mock<IHandEvaluator>();
             SetupEvalHandSequence(handEvalMock, new int[] { 2, 1, 0 }, 3, extra: new int[] { 2, 0, 2 });
-            _gameEvaluator.SetHandEvaluator(handEvalMock.Object);
+            HandEvaluatorResolver.Register(handEvalMock.Object);
 
             var judgeResult = _gameEvaluator.Judge(table);
 
@@ -155,7 +155,7 @@ namespace NPokerEngine.Tests.Engine
 
             var handEvalMock = new Mock<IHandEvaluator>();
             SetupEvalHandSequence(handEvalMock, new int[] { 0, 1, 0 });
-            _gameEvaluator.SetHandEvaluator(handEvalMock.Object);
+            HandEvaluatorResolver.Register(handEvalMock.Object);
 
             var winners = _gameEvaluator.FindWinnersFrom(players, dummyCommunity);
 
@@ -174,7 +174,7 @@ namespace NPokerEngine.Tests.Engine
 
             var handEvalMock = new Mock<IHandEvaluator>();
             SetupEvalHandSequence(handEvalMock, new int[] { 0, 1, 1 });
-            _gameEvaluator.SetHandEvaluator(handEvalMock.Object);
+            HandEvaluatorResolver.Register(handEvalMock.Object);
 
             var winners = _gameEvaluator.FindWinnersFrom(players, dummyCommunity);
 

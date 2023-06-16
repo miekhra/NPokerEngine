@@ -5,27 +5,8 @@ using System.Linq;
 
 namespace NPokerEngine.Engine
 {
-    internal class HandEvaluator : IHandEvaluator
+    internal class HandEvaluator : Singleton<HandEvaluator>, IHandEvaluator
     {
-        private static HandEvaluator _instance;
-
-        private HandEvaluator()
-        {
-        }
-
-        public static HandEvaluator Instance
-        {
-            get
-            {
-                if (_instance == null)
-                {
-                    _instance = new HandEvaluator();
-                }
-
-                return _instance;
-            }
-        }
-
         internal Func<IEnumerable<Card>, IEnumerable<Card>, int> _evalFunc = null;
         public HandRankInfo GenHandRankInfo(IEnumerable<Card> hole, IEnumerable<Card> community)
         {

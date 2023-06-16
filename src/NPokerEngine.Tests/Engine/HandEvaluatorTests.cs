@@ -29,15 +29,10 @@ namespace NPokerEngine.Tests.Engine
             using (new AssertionScope())
             {
                 rankInfo.HandStrength.Should().Be(HandRankType.HIGHCARD);
-                //((IDictionary)rankInfo["hand"])["strength"].Should().Be("HIGHCARD");
                 rankInfo.HandHigh.Should().Be(9);
-                //((IDictionary)rankInfo["hand"])["high"].Should().Be(9);
                 rankInfo.HandLow.Should().Be(2);
-                //((IDictionary)rankInfo["hand"])["low"].Should().Be(2);
                 rankInfo.HoleHigh.Should().Be(9);
-                //((IDictionary)rankInfo["hole"])["high"].Should().Be(9);
                 rankInfo.HoleLow.Should().Be(2);
-                //((IDictionary)rankInfo["hole"])["low"].Should().Be(2);
             }
         }
 

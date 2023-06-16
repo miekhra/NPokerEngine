@@ -12,7 +12,7 @@ namespace NPokerEngine.Tests.Engine
         [TestCleanup]
         public void Cleanup()
         {
-            GameEvaluator.Instance.SetHandEvaluator(null);
+            HandEvaluatorResolver.ResoreDefault();
         }
 
         [TestMethod]
@@ -256,7 +256,7 @@ namespace NPokerEngine.Tests.Engine
         {
             var handEvalMock = new Mock<IHandEvaluator>();
             GameEvaluatorTests.SetupEvalHandSequence(handEvalMock, new int[] { 1, 0 }, 3);
-            GameEvaluator.Instance.SetHandEvaluator(handEvalMock.Object);
+            HandEvaluatorResolver.Register(handEvalMock.Object);
 
             var (state, _) = this.StartRound();
             (state, _) = RoundManager.Instance.ApplyAction(state, ActionType.FOLD, 0);
@@ -284,7 +284,7 @@ namespace NPokerEngine.Tests.Engine
         {
             var handEvalMock = new Mock<IHandEvaluator>();
             GameEvaluatorTests.SetupEvalHandSequence(handEvalMock, new int[] { 1, 0 }, 3);
-            GameEvaluator.Instance.SetHandEvaluator(handEvalMock.Object);
+            HandEvaluatorResolver.Register(handEvalMock.Object);
 
             var (state, _) = this.StartRound();
             (state, _) = RoundManager.Instance.ApplyAction(state, ActionType.FOLD, 0);
@@ -308,7 +308,7 @@ namespace NPokerEngine.Tests.Engine
         {
             var handEvalMock = new Mock<IHandEvaluator>();
             GameEvaluatorTests.SetupEvalHandSequence(handEvalMock, new int[] { 1, 0 }, 3);
-            GameEvaluator.Instance.SetHandEvaluator(handEvalMock.Object);
+            HandEvaluatorResolver.Register(handEvalMock.Object);
 
             var (state, _) = this.StartRound();
             (state, _) = RoundManager.Instance.ApplyAction(state, ActionType.FOLD, 0);
