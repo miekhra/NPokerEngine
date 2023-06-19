@@ -16,11 +16,11 @@ namespace NPokerEngine.Types
         public bool IsCheat => _isCheat;
         public int Size => _deck.Count - _popIndex;
 
-        public Deck(IEnumerable<int> cardIds = null, bool cheat = false, IEnumerable<int> cheatCardIds = null)
+        public Deck(IEnumerable<int> cardIds = null, bool cheat = false, IEnumerable<int> cheatCardIds = null, IEnumerable<int> excludeCardsIds = null)
         {
             _isCheat = cheat;
             _cheatCardIds = _isCheat ? cheatCardIds.ToList().AsReadOnly() : null;
-            _deck = cardIds != null ? cardIds.Select(Card.FromId).ToList() : SetupDeck();
+            _deck = cardIds != null ? cardIds.Select(Card.FromId).ToList() : SetupDeck(excludeCardsIds);
         }
 
         public Card DrawCard()
@@ -57,10 +57,18 @@ namespace NPokerEngine.Types
             return Enumerable.Range(1, num).Select(t => DrawCard()).ToList();
         }
 
-        private List<Card> SetupDeck()
+        private List<Card> SetupDeck(IEnumerable<int> excludeCardsIds = null)
         {
             _popIndex = 0;
-            return IsCheat ? _cheatCardIds.Reverse().Select(Card.FromId).ToList() : Enumerable.Range(1, 52).Select(Card.FromId).ToList();
+
+            if (IsCheat)
+                return _cheatCardIds.Reverse().Select(Card.FromId).ToList();
+
+            var cardIds = Enumerable.Range(1, 52);
+            if (excludeCardsIds != null)
+                cardIds = Enumerable.Range(1, 52).Except(excludeCardsIds);
+
+            return cardIds.Select(Card.FromId).ToList();
         }
 
         // serialize format : [cheat_flg, cheat_card_ids, deck_card_ids]
