@@ -1,0 +1,129 @@
+﻿@using BlazorMonaco
+@using BlazorMonaco.Editor
+
+<span style="@($"{(Width == 0 ? "" : $"width: {Width}px; ")}height: {Height}px; display: block")">
+    @if (string.IsNullOrEmpty(JsonDiffValue) || string.Equals(JsonValue, JsonDiffValue))
+    {
+        <StandaloneCodeEditor @ref="_editor" ConstructionOptions="EditorConstructionOptions" OnDidBlurEditorWidget="OnDidBlurEditorWidgetAsync" CssClass="monaco-editor-class" />
+    }
+    else
+    {
+        <StandaloneDiffEditor @ref="_diffEditor" ConstructionOptions="DiffEditorConstructionOptions" CssClass="monaco-diff-editor-class" OnDidInit="UpdateDiffEditor" />
+    }
+</span>
+
+<style>
+    .monaco-editor-class {
+        width: 50%;
+        height: 100%;
+    }
+    .monaco-diff-editor-class {
+        height: 100%;
+    }
+</style>
+
+@code {
+    private string _jsonValue, _jsonDiffValue;
+    private StandaloneCodeEditor _editor;
+    private StandaloneDiffEditor _diffEditor;
+
+    [Parameter]
+    public bool EditingEnabled { get; set; } = false;
+
+    [Parameter]
+    public int Height { get; set; } = 500;
+
+    [Parameter]
+    public int Width { get; set; } = 0;
+
+    [Parameter]
+    public string JsonValue
+    {
+        get => _jsonValue;
+        set
+        {
+            if (value == _jsonValue) return;
+            _jsonValue = value;
+            if (value != null)
+                UpdateEditor();
+        }
+    }
+
+    [Parameter]
+    public EventCallback<string> JsonValueChanged { get; set; }
+
+    [Parameter]
+    public string JsonDiffValue
+    {
+        get => _jsonDiffValue;
+        set
+        {
+            if (value == _jsonDiffValue) return;
+            _jsonDiffValue = value;
+            if (value != null)
+                UpdateDiffEditor();
+        }
+    }
+
+    [Parameter]
+    public EventCallback<string> JsonDiffValueChanged { get; set; }
+
+    private T EditorConstructionOptions<T>() where T : EditorOptions, new()
+        => new T
+            {
+                AutomaticLayout = true,
+                Contextmenu = false,
+                LineHeight = 19,
+                LineNumbersMinChars = 3,
+                Minimap = new EditorMinimapOptions { Enabled = false, Size = "0px" },
+                ReadOnly = !EditingEnabled
+            };
+
+    private StandaloneEditorConstructionOptions EditorConstructionOptions(StandaloneCodeEditor editor)
+    {
+        var standaloneOptions = EditorConstructionOptions<StandaloneEditorConstructionOptions>();
+        standaloneOptions.Language = "json";
+        standaloneOptions.Value = JsonValue;
+        return standaloneOptions;
+    }
+
+    private StandaloneDiffEditorConstructionOptions DiffEditorConstructionOptions(StandaloneDiffEditor editor)
+    {
+        return EditorConstructionOptions<StandaloneDiffEditorConstructionOptions>();
+    }
+
+    private async void OnDidBlurEditorWidgetAsync()
+    {
+        JsonValue = await _editor.GetValue();
+        if (JsonValueChanged.HasDelegate)
+            await JsonValueChanged.InvokeAsync(JsonValue);
+    }
+
+    private void UpdateEditor()
+    {
+        if (_editor == null) return;
+
+        _ = Task.Run(async () =>
+        {
+            await _editor.SetValue(JsonValue);
+            await _editor.Layout();
+            await InvokeAsync(StateHasChanged);
+        });
+    }
+
+    private void UpdateDiffEditor()
+    {
+        if (_diffEditor == null) return;
+
+        _ = Task.Run(async () =>
+        {
+            await _diffEditor.SetModel(new DiffEditorModel
+            {
+                Original = await Global.CreateModel(JsonValue, language: "json"),
+                Modified = await Global.CreateModel(JsonDiffValue, language: "json")
+            });
+            await _diffEditor.Layout();
+            await InvokeAsync(StateHasChanged);
+        });
+    }
+}

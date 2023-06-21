@@ -1,0 +1,224 @@
+﻿@inherits LayoutComponentBase
+
+@using Blazored.Toast;
+@using Blazored.Toast.Configuration;
+@using Blazored.Toast.Services;
+@using CurrieTechnologies.Razor.Clipboard;
+@using NPokerEngine.Players;
+@using NPokerEngine.Types;
+@using NPokerEngine.Demo.JsonConverters;
+
+@inject ClipboardService Clipboard
+@inject IToastService ToastService
+
+<div class="page">
+    <div class="sidebar">
+        <NavMenu MenuItems="@(new List<NavMenuItem>
+        {
+            new NavMenuItem { Visible = !_model.IsInitialized, Title = "Initialize", Icon = "oi-file", OnClick = new EventCallback(null, StartNewGame) },
+            new NavMenuItem { Visible = _model.IsNeedStartNewRound, Title = "New Round", Icon = "oi-bell", OnClick = new EventCallback(null, StartNewRound) },
+            new NavMenuItem { Visible = _model.IsNeedApplyAction, Title = "Apply", Icon = "oi-check", OnClick = new EventCallback(null, Apply) },
+            new NavMenuItem { Visible = _model.IsNeedApplyAction, Title = "Cancel", Icon = "oi-x", OnClick = new EventCallback(null, Cancel) },
+            new NavMenuItem { Visible = _model.IsNeedPlayerMove, Title = "Player Move", Icon = "oi-calculator", OnClick = new EventCallback(null, SelectPlayerAction) },
+            new NavMenuItem { Visible = _model.IsInitialized, Title = "Clear", Icon = "oi-ban", OnClick = new EventCallback(null, Clear) },
+            new NavMenuItem { Visible = _model.IsInitialized && !_model.IsNeedApplyAction, Title = "Copy", Icon = "oi-layers", OnClick = new EventCallback(null, CopyGameStateToClipboard ) },
+            new NavMenuItem { Visible = !_model.IsNeedApplyAction, Title = "Paste", Icon = "oi-clipboard", OnClick = new EventCallback(null, PasteGameStateFromClipboard) }
+        })" />
+    </div>
+
+    <main>
+        <div class="top-row px-4">
+            <a href="https://docs.microsoft.com/aspnet/" target="_blank">About</a>
+        </div>
+
+        <article class="content px-4">
+            <PageTitle>NPokerEngine Playground</PageTitle>
+            @if (_model.IsGameFinished)
+            {
+                <div class="alert alert-success" role="alert">
+                    Game Finished!
+                </div>
+            }
+            <button type="button" class="btn btn-primary btn-sm" disabled="@(!_model.Messages.Any())" @onclick="ShowMessagesViewModal">
+                Messages <span class="badge bg-danger">@_model.Messages.Count</span>
+            </button>
+            <JsonEditor @bind-JsonValue="@_model.GameStateJson" @bind-JsonDiffValue="@_model.GameStateModifiedJson" />
+        </article>
+    </main>
+</div>
+
+<BlazoredToasts Position="@ToastPosition.BottomRight" />
+
+@code {
+    [CascadingParameter] public IModalService Modal { get; set; } = default!;
+
+    private DemoModel _model = new();
+    private float _smallBlindAmoint = 1;
+    private int _playersCount = 6;
+    private JsonSerializerOptions _jsonSerializerOptions;
+
+    protected override void OnInitialized()
+    {
+        _jsonSerializerOptions = new JsonSerializerOptions
+            {
+                WriteIndented = true
+            };
+        _jsonSerializerOptions.Converters.Add(new GameStateJsonConverter());
+    }
+
+    private void GenerateInitialState()
+    {
+        var emulator = new Emulator();
+        emulator.SetupConfig(max_round: int.MaxValue, initial_stack: 100, small_blind_amount: _smallBlindAmoint);
+        for (int ix = 1; ix <= _playersCount; ix++)
+        {
+            emulator.RegisterPlayer(new FoldPlayer(name: $"p{ix}", uuid: Guid.Parse(Guid.Empty.ToString().Replace("0", ix.ToString()))));
+        }
+
+        _model.Emulator = emulator;
+        _model.GameState = emulator.GenerateInitialState();
+        _model.GameStateJson = JsonSerializer.Serialize(_model.GameState, _jsonSerializerOptions);
+    }
+
+    private async Task CopyGameStateToClipboard()
+    {
+        await Clipboard.WriteTextAsync(_model.GameStateJson);
+        ToastService.ShowInfo("GameState copied to clipboard");
+    }
+
+    private async Task PasteGameStateFromClipboard()
+    {
+        try
+        {
+            var gameStateClipboard = await Clipboard.ReadTextAsync();
+            if (string.IsNullOrWhiteSpace(gameStateClipboard)) return;
+
+            var gameState = JsonSerializer.Deserialize<GameState>(gameStateClipboard, _jsonSerializerOptions);
+
+            var emulator = new Emulator();
+            emulator.SetupConfig(max_round: int.MaxValue, initial_stack: 100, small_blind_amount: gameState.SmallBlindAmount);
+            foreach (var p in gameState.Table.Seats.Players)
+            {
+                emulator.RegisterPlayer(new FoldPlayer(name: p.Name, uuid: Guid.Parse(p.Uuid)));
+            }
+
+            _model = new DemoModel
+                {
+                    Emulator = emulator,
+                    GameState = gameState,
+                    GameStateJson = JsonSerializer.Serialize(gameState, _jsonSerializerOptions)
+                };
+            ToastService.ShowInfo("GameState pasted from clipboard");
+        }
+        catch(Exception ex)
+        {
+            ToastService.ShowError($"{ex.GetType().Name}: {ex.Message}");
+        }
+    }
+
+    private void StartNewRound()
+    {
+        var (gameState, msgs) = _model.Emulator.StartNewRound(_model.GameState);
+        _model.GameStateModifiedJson = JsonSerializer.Serialize(gameState, _jsonSerializerOptions);
+        _model.Messages = msgs;
+    }
+
+    private async Task SelectPlayerAction()
+    {
+        var parameters = new ModalParameters()
+            .Add(nameof(Pages.PlayerActionSelector.ValidActions), _model.Emulator.GeneratePossibleActions(_model.GameState))
+            .Add(nameof(Pages.PlayerActionSelector.PlayerName), _model.GameState.Table.Seats[_model.GameState.NextPlayerIx].Name);
+
+        var messageForm = Modal.Show<Pages.PlayerActionSelector>(string.Empty, parameters);
+        var result = await messageForm.Result;
+
+        if (!result.Confirmed) return;
+
+        var selectedAction = (Pages.PlayerActionSelector.PlayerActionModel)result.Data;
+        var (gameState, msgs) = _model.Emulator.ApplyAction(_model.GameState, selectedAction.ActionType, selectedAction.Amount);
+        _model.GameStateModifiedJson = JsonSerializer.Serialize(gameState, _jsonSerializerOptions);
+        _model.Messages = msgs;
+    }
+
+    private async Task StartNewGame()
+    {
+        var newGameForm = Modal.Show<Pages.NewGameForm>();
+        var result = await newGameForm.Result;
+
+        if (!result.Confirmed) return;
+
+        var newGameModel = (Pages.NewGameForm.NewGameModel)result.Data;
+
+        var emulator = new Emulator();
+        emulator.SetupConfig(max_round: int.MaxValue, initial_stack: newGameModel.InitialStack, small_blind_amount: newGameModel.SmallBlindAmount);
+        for (int ix = 1; ix <= newGameModel.PlayersCount; ix++)
+        {
+            emulator.RegisterPlayer(new FoldPlayer(name: $"p{ix}", uuid: Guid.Parse(Guid.Empty.ToString().Replace("0", ix.ToString()))));
+        }
+
+        var gameState = emulator.GenerateInitialState();
+
+        _model = new()
+        {
+            Emulator = emulator,
+            GameState = gameState,
+            GameStateJson = JsonSerializer.Serialize(gameState, _jsonSerializerOptions)
+        };
+    }
+
+    private void Apply()
+    {
+        _model.GameState = JsonSerializer.Deserialize<GameState>(_model.GameStateModifiedJson, _jsonSerializerOptions);
+        _model.GameStateJson = _model.GameStateModifiedJson;
+        _model.GameStateModifiedJson = string.Empty;
+        _model.Messages.Clear();
+    }
+
+    private void Cancel()
+    {
+        _model.GameStateModifiedJson = string.Empty;
+        _model.Messages.Clear();
+    }
+
+    private void Clear()
+    {
+        _model = new();
+    }
+
+    private void ShowMessagesViewModal()
+    {
+        var parameters = new ModalParameters()
+            .Add(nameof(Pages.MessagesView.Messages), _model.Messages)
+            .Add(nameof(Pages.MessagesView.GameState), JsonSerializer.Deserialize<GameState>(_model.GameStateModifiedJson, _jsonSerializerOptions));
+
+        Modal.Show<Pages.MessagesView>("Messages", parameters);
+    }
+
+    class DemoModel
+    {
+        public Emulator Emulator { get; set; }
+        public GameState GameState { get; set; }
+        public string GameStateJson { get; set; } = string.Empty;
+        public string GameStateModifiedJson { get; set; } = string.Empty;
+        public List<NPokerEngine.Messages.IMessage> Messages { get; set; } = new();
+
+        public bool IsInitialized => GameState != default;
+        public bool IsNeedStartNewRound => !IsNeedApplyAction && Emulator?.NeedStartRound(GameState) == true && !IsGameFinished;
+        public bool IsNeedPlayerMove => !IsNeedApplyAction && IsInitialized && !IsNeedStartNewRound && !IsGameFinished;
+        public bool IsNeedApplyAction => IsInitialized && !string.IsNullOrWhiteSpace(GameStateModifiedJson);
+        public bool IsGameFinished => Emulator?.IsLastRound(GameState) == true;
+    }
+
+    class MessageModel
+    {
+        public string MessageType { get; set; }
+        public string MessageData { get; set; }
+    }
+
+    class PossibleActionModel
+    {
+        public ActionType ActionType { get; set; }
+        public float Value { get; set; }
+        public float? MaxValue { get; set; }
+    }
+}

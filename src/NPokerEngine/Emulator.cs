@@ -137,7 +137,15 @@ namespace NPokerEngine
             };
         }
 
-        internal bool IsLastRound(GameState gameState)
+        public bool NeedStartRound(GameState gameState)
+        {
+            if (gameState.NextPlayerIx < 0) return true;
+            if (gameState.Street == StreetType.FINISHED) return true;
+
+            return false;
+        }
+
+        public bool IsLastRound(GameState gameState)
         {
             var isRoundFinished = gameState.Street == StreetType.FINISHED;
             var isFinalRound = gameState.RoundCount >= _config.MaxRound;

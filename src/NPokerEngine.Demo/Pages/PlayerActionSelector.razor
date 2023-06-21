@@ -1,0 +1,133 @@
+﻿@using NPokerEngine.Types
+
+@if (_model == default)
+{
+    return;
+}
+
+<EditForm Model="_model" OnValidSubmit="SubmitForm">
+    <DataAnnotationsValidator />
+
+    <div class="mb-3">
+        <label for="ationtype">
+            Select Action Type: 
+            <InputSelect class="form-select form-select-sm" TValue="ActionType" Value="@_model.ActionType" ValueExpression="() => _model.ActionType" ValueChanged="v => OnActionTypeChanged(v)">
+                @foreach (var actionType in Enum.GetValues(typeof(ActionType)).Cast<ActionType>().Where(t => ValidActions.Any(v => v.possibleAction == t)))
+                {
+                    <option value="@actionType">@actionType</option>
+                }
+            </InputSelect>
+            <ValidationMessage For="@(() => _model.ActionType)" />
+        </label>
+    </div>
+
+    @if (_model.ActionType != ActionType.FOLD)
+    {
+        <div class="mb-3">
+            <label class="form-label">
+                Amount: <br />
+                <InputNumber @bind-Value="@_model.Amount" AdditionalAttributes="@(_model.ActionType == ActionType.RAISE ? 
+                    new Dictionary<string, object>
+                    { 
+                        {"min", ValidActions.Single(t => t.possibleAction == ActionType.RAISE).amountInterval.Value }, 
+                        { "max", ValidActions.Single(t => t.possibleAction == ActionType.RAISE).amountInterval.MaxValue.Value } 
+                    } :
+                    new Dictionary<string, object> { {"disabled", true} })" />
+                @if (_model.ActionType == ActionType.RAISE)
+                {
+                    <div class="form-text">
+                        min: @ValidActions.Single(t => t.possibleAction == ActionType.RAISE).amountInterval.Value max: @ValidActions.Single(t => t.possibleAction == ActionType.RAISE).amountInterval.MaxValue.Value 
+                    </div>
+                }
+                <ValidationMessage For="@(() => _model.Amount)" />
+            </label>
+        </div>
+    }
+
+    <button class="btn btn-primary btn-sm" type="submit">Apply</button>
+</EditForm>
+<br />
+@foreach (var validAction in ValidActions)
+{
+    <div class="d-inline p-2 bg-primary text-white">
+        @if (validAction.amountInterval.MaxValue.HasValue)
+        {
+            <abbr title="@($"min: {validAction.amountInterval.Value} max: {validAction.amountInterval.MaxValue}")">@validAction.possibleAction</abbr>
+        }
+        else
+        {
+            <abbr title="@($"{validAction.amountInterval.Value}")">@validAction.possibleAction</abbr>
+        }
+    </div>
+}
+
+@code {
+    [CascadingParameter] BlazoredModalInstance BlazoredModal { get; set; } = default!;
+    [Parameter] public List<(ActionType possibleAction, AmountInterval amountInterval)> ValidActions { get; set; }
+    [Parameter] public string PlayerName { get; set; }
+
+    private PlayerActionModel _model;
+
+    protected override void OnInitialized() 
+    {
+        _model = new PlayerActionModel(ValidActions);
+        BlazoredModal.SetTitle($"Select Action for {PlayerName}");
+    }
+
+    private async Task SubmitForm() => await BlazoredModal.CloseAsync(ModalResult.Ok(_model));
+
+    private void OnActionTypeChanged(ActionType actionType)
+    {
+        if (actionType == ActionType.FOLD)
+        {
+            _model.Amount = 0;
+        }
+        else if (actionType == ActionType.CALL || actionType == ActionType.RAISE)
+        {
+            _model.Amount = ValidActions.Single(t => t.possibleAction == actionType).amountInterval.Value;
+        }
+        _model.ActionType = actionType;
+    }
+
+    public class PlayerActionModel : IValidatableObject
+    {
+        private readonly List<(ActionType possibleAction, AmountInterval amountInterval)> _validActions;
+
+        public PlayerActionModel(List<(ActionType possibleAction, AmountInterval amountInterval)> validActions)
+        {
+            _validActions = validActions;
+        }
+
+        public ActionType ActionType { get; set; }
+        public float Amount { get; set; }
+
+        public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+        {
+            IEnumerable<ValidationResult> generateValidationResult(string msg, string propertyName)
+            {
+                return new List<ValidationResult>()
+                {
+                    new ValidationResult(msg, new List<string> { propertyName })
+                };
+            }
+
+            if (!_validActions.Any(t => t.possibleAction == this.ActionType))
+            {
+                return generateValidationResult($"{this.ActionType} is not allowed", nameof(ActionType));
+            }
+
+            var validAction = _validActions.Single(t => t.possibleAction == this.ActionType);
+            if (this.Amount < validAction.amountInterval.Value)
+            {
+                return generateValidationResult($"Bet amount {this.Amount} should be great than {validAction.amountInterval.Value}", nameof(Amount));
+            }
+
+            if (validAction.amountInterval.MaxValue.HasValue && this.Amount > validAction.amountInterval.MaxValue)
+            {
+                return generateValidationResult($"Bet amount {this.Amount} should be less than {validAction.amountInterval.MaxValue}", nameof(Amount));
+            }
+
+            return null;
+        }
+    }
+}
