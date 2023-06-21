@@ -1,0 +1,34 @@
+﻿<div class="top-row ps-3 navbar navbar-dark">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="">NPokerEngine.Demo</a>
+        <button title="Navigation menu" class="navbar-toggler" @onclick="ToggleNavMenu">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+    </div>
+</div>
+
+<div class="@NavMenuCssClass nav-scrollable" @onclick="ToggleNavMenu">
+    <nav class="flex-column">
+        @foreach (var menuItem in MenuItems.Where(m => m.Visible))
+        {
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="javascript:void(0)" @onclick="menuItem.OnClick">
+                    <span class="oi @menuItem.Icon" aria-hidden="true"></span> @menuItem.Title
+                </NavLink>
+            </div>
+        }
+    </nav>
+</div>
+
+@code {
+    [Parameter] public List<NavMenuItem> MenuItems { get; set; } = new();
+
+    private bool collapseNavMenu = true;
+
+    private string NavMenuCssClass => collapseNavMenu ? "collapse" : null;
+
+    private void ToggleNavMenu()
+    {
+        collapseNavMenu = !collapseNavMenu;
+    }
+}

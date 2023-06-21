@@ -1,0 +1,65 @@
+﻿<EditForm Model="@_model" OnValidSubmit="SubmitForm" >
+    <DataAnnotationsValidator />
+
+    <div class="mb-3">
+        <label class="form-label">
+            Players Count: 
+            <InputSelect @bind-Value="@_model.PlayersCount" class="form-select form-select-sm">
+                @for(var ix=2; ix <= 10; ix++)
+                {
+                    <option value="@ix">@ix</option>
+                }
+            </InputSelect>
+        </label>
+    </div>
+    <div class="mb-3">
+        <label class="form-label">
+            Small Blind Amount:
+            <InputNumber @bind-Value="@_model.SmallBlindAmount" class="form-control form-control-sm" />
+            <ValidationMessage For="@(() => _model.SmallBlindAmount)" />
+        </label>
+    </div>
+    <div class="mb-3">
+        <label class="form-label">
+            Initial Stack:
+            <InputNumber @bind-Value="@_model.InitialStack" class="form-control form-control-sm" />
+            <ValidationMessage For="@(() => _model.InitialStack)" />
+        </label>
+    </div>
+    <button class="btn btn-primary btn-sm" type="submit">Apply</button>
+</EditForm>
+
+@code {
+    [CascadingParameter] BlazoredModalInstance BlazoredModal { get; set; } = default!;
+
+    private NewGameModel _model = new();
+    private string _validationMessage;
+
+    protected override void OnInitialized() => BlazoredModal.SetTitle("New Game");
+
+    private async Task SubmitForm() => await BlazoredModal.CloseAsync(ModalResult.Ok(_model));
+
+    public class NewGameModel : IValidatableObject
+    {
+        [Range(2, 10)]
+        public int PlayersCount { get; set; } = 6;
+
+        [Range(0.1f, float.MaxValue, ErrorMessage = "Should be greater than 0.1")]
+        public float SmallBlindAmount { get; set; } = 1f;
+
+        [Range(0.1f, float.MaxValue, ErrorMessage = "Should be greater than 0.1")]
+        public float InitialStack { get; set; } = 100f;
+
+        public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+        {
+            if (this.SmallBlindAmount > this.InitialStack)
+            {
+                return new List<ValidationResult>()
+                {
+                    new ValidationResult("Small Blind Amount should be less than Initial Stack", new List<string> { nameof(SmallBlindAmount) })
+                };
+            }
+            return null;
+        }
+    }
+}

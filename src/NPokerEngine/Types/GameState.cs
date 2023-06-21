@@ -23,28 +23,5 @@ namespace NPokerEngine.Types
             };
         }
 
-        public Dictionary<string, object> ToDictionary()
-            => new Dictionary<string, object>
-            {
-                {
-                    "round_count",
-                    this.RoundCount
-                },
-                {
-                    "small_blind_amount",
-                    this.SmallBlindAmount
-                },
-                {
-                    "street",
-                    this.Street},
-                {
-                    "next_player",
-                    this.NextPlayerIx},
-                {
-                    "table",
-                    this.Table
-                }
-            };
-
     }
 }

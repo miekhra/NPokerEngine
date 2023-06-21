@@ -1,0 +1,72 @@
+﻿@using NPokerEngine.Messages
+@using NPokerEngine.Types
+
+<table class="table">
+    <thead>
+        <tr>
+            <th scope="col">Recipient(s)</th>
+            <th scope="col">Type</th>
+            <th scope="col">Details</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var msg in Messages)
+        {
+            <tr>
+                <td>@($"{(msg is IPlayerMessage playerMessage ? GameState.Table.Seats[playerMessage.PlayerUuid].Name : "All")}")</td>
+                <td>@(msg.GetType().Name.Replace("Message", ""))</td>
+                <td>
+                    @if (msg is StreetStartMessage streetStartMessage)
+                    {
+                        <div class="d-inline p-2 bg-primary text-white">@streetStartMessage.Street</div>
+                    }
+                    else if (msg is RoundResultMessage roundResultMessage)
+                    {
+                        <h6>Round <span class="badge bg-secondary">@roundResultMessage.RoundCount</span></h6>
+                        <div class="d-inline p-2 bg-primary text-white">Winners: </div>
+                        @foreach (var winner in roundResultMessage.Winners)
+                        {
+                            <div class="d-inline p-2 bg-dark text-white">@winner.Name</div>
+                        }
+                    }
+                    else if (msg is RoundStartMessage roundStartMessage)
+                    {
+                        <div class="d-inline p-2 bg-primary text-white"><span class="badge bg-secondary">@roundStartMessage.RoundCount</span></div>
+                        <div class="d-inline p-2 bg-dark text-white">@($"[{string.Join(";", GameState.Table.Seats[roundStartMessage.PlayerUuid].HoleCards.Select(c => c.ToString()))}]")</div>
+                    }
+                    else if (msg is GameUpdateMessage gameUpdateMessage)
+                    {
+                        <div class="d-inline p-2 bg-primary text-white">@GameState.Table.Seats[gameUpdateMessage.PlayerUuid].Name</div>
+                        <div class="d-inline p-2 bg-dark text-white">@gameUpdateMessage.Action</div>
+                        <div class="d-inline p-2 bg-dark text-white">@gameUpdateMessage.Amount</div>
+                    }
+                    else if (msg is AskMessage askMessage)
+                    {
+                        <div>
+                        @foreach (var validAction in askMessage.ValidActions)
+                        {
+                            <div class="d-inline p-2 bg-primary text-white">
+                                @if (validAction.Value.Item2.HasValue)
+                                {
+                                    <abbr title="@($"min: {validAction.Value.Item1} max: {validAction.Value.Item2}")">@validAction.Key</abbr>
+                                }
+                                else
+                                {
+                                    <abbr title="@($"{validAction.Value.Item1}")">@validAction.Key</abbr>
+                                }
+                            </div>
+                        }
+                        </div>
+                    }
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@code {
+    [CascadingParameter] BlazoredModalInstance BlazoredModal { get; set; } = default!;
+
+    [Parameter] public List<IMessage> Messages { get; set; } = new();
+    [Parameter] public GameState GameState { get; set; } = new();
+}
