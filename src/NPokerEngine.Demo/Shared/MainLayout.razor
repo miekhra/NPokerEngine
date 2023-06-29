@@ -6,7 +6,7 @@
 @using CurrieTechnologies.Razor.Clipboard;
 @using NPokerEngine.Players;
 @using NPokerEngine.Types;
-@using NPokerEngine.Demo.JsonConverters;
+@using NPokerEngine.Demo.Pages;
 
 @inject ClipboardService Clipboard
 @inject IToastService ToastService
@@ -15,7 +15,7 @@
     <div class="sidebar">
         <NavMenu MenuItems="@(new List<NavMenuItem>
         {
-            new NavMenuItem { Visible = !_model.IsInitialized, Title = "Initialize", Icon = "oi-file", OnClick = new EventCallback(null, StartNewGame) },
+            new NavMenuItem { Visible = !_model.IsInitialized, Title = "New Game", Icon = "oi-file", OnClick = new EventCallback(null, StartNewGame) },
             new NavMenuItem { Visible = _model.IsNeedStartNewRound, Title = "New Round", Icon = "oi-bell", OnClick = new EventCallback(null, StartNewRound) },
             new NavMenuItem { Visible = _model.IsNeedApplyAction, Title = "Apply", Icon = "oi-check", OnClick = new EventCallback(null, Apply) },
             new NavMenuItem { Visible = _model.IsNeedApplyAction, Title = "Cancel", Icon = "oi-x", OnClick = new EventCallback(null, Cancel) },
@@ -28,7 +28,7 @@
 
     <main>
         <div class="top-row px-4">
-            <a href="https://docs.microsoft.com/aspnet/" target="_blank">About</a>
+            <a href="javascript:void(0)" @onclick="@(() => Modal.Show<HelpWindow>("Help", new ModalOptions { Size = ModalSize.Large }))">Help</a>
         </div>
 
         <article class="content px-4">
@@ -53,8 +53,6 @@
     [CascadingParameter] public IModalService Modal { get; set; } = default!;
 
     private DemoModel _model = new();
-    private float _smallBlindAmoint = 1;
-    private int _playersCount = 6;
     private JsonSerializerOptions _jsonSerializerOptions;
 
     protected override void OnInitialized()
@@ -64,20 +62,6 @@
                 WriteIndented = true
             };
         _jsonSerializerOptions.Converters.Add(new GameStateJsonConverter());
-    }
-
-    private void GenerateInitialState()
-    {
-        var emulator = new Emulator();
-        emulator.SetupConfig(max_round: int.MaxValue, initial_stack: 100, small_blind_amount: _smallBlindAmoint);
-        for (int ix = 1; ix <= _playersCount; ix++)
-        {
-            emulator.RegisterPlayer(new FoldPlayer(name: $"p{ix}", uuid: Guid.Parse(Guid.Empty.ToString().Replace("0", ix.ToString()))));
-        }
-
-        _model.Emulator = emulator;
-        _model.GameState = emulator.GenerateInitialState();
-        _model.GameStateJson = JsonSerializer.Serialize(_model.GameState, _jsonSerializerOptions);
     }
 
     private async Task CopyGameStateToClipboard()
@@ -126,15 +110,15 @@
     private async Task SelectPlayerAction()
     {
         var parameters = new ModalParameters()
-            .Add(nameof(Pages.PlayerActionSelector.ValidActions), _model.Emulator.GeneratePossibleActions(_model.GameState))
-            .Add(nameof(Pages.PlayerActionSelector.PlayerName), _model.GameState.Table.Seats[_model.GameState.NextPlayerIx].Name);
+            .Add(nameof(PlayerActionSelector.ValidActions), _model.Emulator.GeneratePossibleActions(_model.GameState))
+            .Add(nameof(PlayerActionSelector.PlayerName), _model.GameState.Table.Seats[_model.GameState.NextPlayerIx].Name);
 
-        var messageForm = Modal.Show<Pages.PlayerActionSelector>(string.Empty, parameters);
+        var messageForm = Modal.Show<PlayerActionSelector>(string.Empty, parameters);
         var result = await messageForm.Result;
 
         if (!result.Confirmed) return;
 
-        var selectedAction = (Pages.PlayerActionSelector.PlayerActionModel)result.Data;
+        var selectedAction = (PlayerActionSelector.PlayerActionModel)result.Data;
         var (gameState, msgs) = _model.Emulator.ApplyAction(_model.GameState, selectedAction.ActionType, selectedAction.Amount);
         _model.GameStateModifiedJson = JsonSerializer.Serialize(gameState, _jsonSerializerOptions);
         _model.Messages = msgs;
@@ -142,12 +126,12 @@
 
     private async Task StartNewGame()
     {
-        var newGameForm = Modal.Show<Pages.NewGameForm>();
+        var newGameForm = Modal.Show<NewGameForm>();
         var result = await newGameForm.Result;
 
         if (!result.Confirmed) return;
 
-        var newGameModel = (Pages.NewGameForm.NewGameModel)result.Data;
+        var newGameModel = (NewGameForm.NewGameModel)result.Data;
 
         var emulator = new Emulator();
         emulator.SetupConfig(max_round: int.MaxValue, initial_stack: newGameModel.InitialStack, small_blind_amount: newGameModel.SmallBlindAmount);

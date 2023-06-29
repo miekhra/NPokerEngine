@@ -5,7 +5,7 @@ using System.Text.Json.Serialization;
 using System.Reflection;
 using System.Xml.Linq;
 
-namespace NPokerEngine.Demo.JsonConverters
+namespace NPokerEngine.Demo
 {
     public class GameStateJsonConverter : JsonConverter<GameState>
     {
