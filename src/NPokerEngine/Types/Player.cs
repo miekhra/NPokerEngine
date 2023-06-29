@@ -178,7 +178,7 @@ namespace NPokerEngine.Types
 
         public ActionHistoryEntry AnteHistory(float payAmount)
         {
-            Debug.Assert(payAmount > 0);
+            if (payAmount <= 0) throw new Exception($"Ante can be 0");
             return new ActionHistoryEntry
             {
                 ActionType = ActionType.ANTE,
