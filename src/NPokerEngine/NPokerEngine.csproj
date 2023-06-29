@@ -1,9 +1,19 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
-	  <LangVersion>9.0</LangVersion>
-  </PropertyGroup>
+	<PropertyGroup>
+		<TargetFramework>netstandard2.0</TargetFramework>
+		<LangVersion>9.0</LangVersion>
+		<PackageReadmeFile>readme.md</PackageReadmeFile>
+		<Company>DigitalAbsurd</Company>
+		<PackageProjectUrl>https://github.com/miekhra/NPokerEngine</PackageProjectUrl>
+		<Description>Poker Engine on .NET</Description>
+		<Authors>miekhra,DigitalAbsurd</Authors>
+		<PackageTags>poker;holdem;engine</PackageTags>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<None Include="readme.md" Pack="true" PackagePath="\" />
+	</ItemGroup>
 	
 	<ItemGroup>
 		<InternalsVisibleTo Include="$(AssemblyName).Tests" />
