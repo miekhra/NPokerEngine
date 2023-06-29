@@ -5,7 +5,6 @@ using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using Microsoft.Extensions.Options;
 using NPokerEngine.Demo;
-using NPokerEngine.Demo.JsonConverters;
 using System.Text.Json;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
