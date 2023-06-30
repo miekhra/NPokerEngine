@@ -23,6 +23,8 @@ jobs:
 
     - name: Publish Demo
       run: dotnet publish src/NPokerEngine.Demo/NPokerEngine.Demo.csproj -c Release --output release --nologo
+    - name: Change base-tag in index.html from / to NPokerEngine
+      run: sed -i 's/<base href="\/" \/>/<base href="\/NPokerEngine\/" \/>/g' release/wwwroot/index.html
     - name: Add .nojekyll file
       run: touch release/wwwroot/.nojekyll
     - name: Uploading files to gh-pages branch
