@@ -93,7 +93,7 @@ namespace NPokerEngine.Tests.Engine
             var winners = state.Table.Seats.Players.Skip(1).Take(1);
             var handInfo = new string[] { "dummy", "info" };
 
-            var message = MessageBuilder.Instance.BuildRoundResultMessage(7, winners, handInfo, state);
+            var message = MessageBuilder.Instance.BuildRoundResultMessage(7, winners, handInfo, state, null);
 
             using (new AssertionScope())
             {

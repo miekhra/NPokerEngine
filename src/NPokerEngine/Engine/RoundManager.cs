@@ -28,9 +28,15 @@ namespace NPokerEngine.Engine
 
         public Tuple<GameState, List<IMessage>> ApplyAction(GameState original_state, ActionType action, float bet_amount)
         {
+            ActionHistoryEntry appliedActionHistoryEntry;
+            return ApplyAction(original_state, action, bet_amount, out appliedActionHistoryEntry);
+        }
+
+        public Tuple<GameState, List<IMessage>> ApplyAction(GameState original_state, ActionType action, float bet_amount, out ActionHistoryEntry appliedActionHistoryEntry)
+        {
 
             var state = this.DeepCopyState(original_state);
-            state = this.UpdateStateByAction(state, action, bet_amount);
+            state = this.UpdateStateByAction(state, action, bet_amount, out appliedActionHistoryEntry);
             var table = state.Table;
             var update_msg = this.UpdateMessage(state, action, bet_amount);
             if (this.IsEveryoneAgreed(state))
@@ -174,7 +180,7 @@ namespace NPokerEngine.Engine
         {
             var (winners, hand_info, prize_map) = GameEvaluator.Instance.Judge((Table)state.Table);
             this.PrizeToWinners(state.Table.Seats.Players, prize_map);
-            var result_message = MessageBuilder.Instance.BuildRoundResultMessage(state.RoundCount, winners, hand_info, state);
+            var result_message = MessageBuilder.Instance.BuildRoundResultMessage(state.RoundCount, winners, hand_info, state, prize_map);
             state.Table.Reset();
             state.Street = (StreetType)(Convert.ToByte(state.Street) + 1);
             return (state, new List<IMessage>() { result_message });
@@ -224,7 +230,7 @@ namespace NPokerEngine.Engine
             }
         }
 
-        private GameState UpdateStateByAction(GameState state, ActionType action, float bet_amount)
+        private GameState UpdateStateByAction(GameState state, ActionType action, float bet_amount, out ActionHistoryEntry actionHistoryEntry)
         {
             (action, bet_amount) = ActionChecker.Instance.CorrectAction(state.Table.Seats.Players, state.NextPlayerIx, state.SmallBlindAmount, action, bet_amount);
             var next_player = state.Table.Seats.Players[state.NextPlayerIx];
@@ -232,26 +238,26 @@ namespace NPokerEngine.Engine
             {
                 next_player.PayInfo.UpdateToAllin();
             }
-            return this.AcceptAction(state, action, bet_amount);
+            return this.AcceptAction(state, action, bet_amount, out actionHistoryEntry);
         }
 
-        private GameState AcceptAction(GameState state, ActionType action, float bet_amount)
+        private GameState AcceptAction(GameState state, ActionType action, float bet_amount, out ActionHistoryEntry actionHistoryEntry)
         {
             var player = state.Table.Seats.Players[state.NextPlayerIx];
             if (action == ActionType.CALL)
             {
                 this.ChipTransaction(player, bet_amount);
-                player.AddActionHistory(ActionType.CALL, bet_amount);
+                actionHistoryEntry = player.AddActionHistory(ActionType.CALL, bet_amount);
             }
             else if (action == ActionType.RAISE)
             {
                 this.ChipTransaction(player, bet_amount);
                 var add_amount = bet_amount - ActionChecker.Instance.AgreeAmount(state.Table.Seats.Players);
-                player.AddActionHistory(ActionType.RAISE, bet_amount, add_amount);
+                actionHistoryEntry = player.AddActionHistory(ActionType.RAISE, bet_amount, add_amount);
             }
             else if (action == ActionType.FOLD)
             {
-                player.AddActionHistory(ActionType.FOLD);
+                actionHistoryEntry = player.AddActionHistory(ActionType.FOLD);
                 player.PayInfo.UpdateToFold();
             }
             else

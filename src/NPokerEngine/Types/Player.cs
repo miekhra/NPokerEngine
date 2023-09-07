@@ -84,7 +84,7 @@ namespace NPokerEngine.Types
             return this._payInfo.Status == PayInfoStatus.PAY_TILL_END;
         }
 
-        public void AddActionHistory(ActionType kind, float chipAmount = 0, float addAmount = 0, float sbAmount = 0)
+        public ActionHistoryEntry AddActionHistory(ActionType kind, float chipAmount = 0, float addAmount = 0, float sbAmount = 0)
         {
             ActionHistoryEntry history = null;
             if (kind == ActionType.FOLD)
@@ -117,6 +117,7 @@ namespace NPokerEngine.Types
             }
             history.Uuid = this._uuid;
             this._actionHistories.Add(history);
+            return history;
         }
 
         public void SaveStreetActionHistories(StreetType street)

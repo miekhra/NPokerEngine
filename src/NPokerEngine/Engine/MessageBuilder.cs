@@ -117,34 +117,15 @@ namespace NPokerEngine.Engine
             };
         }
 
-        public virtual RoundResultMessage BuildRoundResultMessage(int round_count, IEnumerable<Player> winners, object hand_info, GameState state)
+        public virtual RoundResultMessage BuildRoundResultMessage(int round_count, IEnumerable<Player> winners, object hand_info, GameState state, Dictionary<int, float> prizeMap)
         {
             return new RoundResultMessage
             {
                 RoundCount = round_count,
                 Winners = winners.ToList(),
-                State = state
+                State = state,
+                PrizeMap = prizeMap
             };
-            //var message = new Dictionary<string, object> {
-            //        {
-            //            "message_type",
-            //            ROUND_RESULT_MESSAGE},
-            //        {
-            //            "round_count",
-            //            round_count},
-            //        {
-            //            "hand_info",
-            //            hand_info},
-            //        {
-            //            "round_state",
-            //            DataEncoder.Instance.EncodeRoundState(state)}};
-
-            //foreach (var item in DataEncoder.Instance.EncodeWinners(winners))
-            //{
-            //    message[item.Key] = item.Value;
-            //}
-
-            //return this.BuildNotificationMessage(message);
         }
 
         public GameResultMessage BuildGameResultMessage(GameConfig config, Seats seats)

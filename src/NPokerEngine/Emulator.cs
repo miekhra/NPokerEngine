@@ -62,13 +62,19 @@ namespace NPokerEngine
 
         public (GameState gameState, List<IMessage> messages) ApplyAction(GameState gameState, ActionType actionType, float betAmount = 0)
         {
+            ActionHistoryEntry actionHistoryEntry;
+            return ApplyAction(gameState, actionType, out actionHistoryEntry, betAmount);
+        }
+
+        public (GameState gameState, List<IMessage> messages) ApplyAction(GameState gameState, ActionType actionType, out ActionHistoryEntry actionHistoryEntry, float betAmount = 0)
+        {
             var messages = new List<IMessage>();
             if (gameState.Street == StreetType.FINISHED)
             {
                 (gameState, messages) = StartNextRound(gameState);
             }
                 
-            var (updatedState, msgs) =  RoundManager.Instance.ApplyAction(gameState, actionType, betAmount);
+            var (updatedState, msgs) =  RoundManager.Instance.ApplyAction(gameState, actionType, betAmount, out actionHistoryEntry);
             gameState = updatedState;
             messages.AddRange(msgs);
 
