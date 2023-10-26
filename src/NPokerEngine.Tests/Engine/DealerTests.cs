@@ -55,7 +55,6 @@ namespace NPokerEngine.Tests.Engine
                 nameof(BasePokerPlayer.ReceiveGameStartMessage),
                 nameof(BasePokerPlayer.ReceiveRoundStartMessage),
                 nameof(BasePokerPlayer.ReceiveStreetStartMessage),
-                nameof(BasePokerPlayer.DeclareAction),
                 nameof(BasePokerPlayer.ReceiveGameUpdateMessage),
                 nameof(BasePokerPlayer.ReceiveRoundResultMessage)
             };
@@ -64,6 +63,7 @@ namespace NPokerEngine.Tests.Engine
                 nameof(BasePokerPlayer.ReceiveGameStartMessage),
                 nameof(BasePokerPlayer.ReceiveRoundStartMessage),
                 nameof(BasePokerPlayer.ReceiveStreetStartMessage),
+                nameof(BasePokerPlayer.DeclareAction),
                 nameof(BasePokerPlayer.ReceiveGameUpdateMessage),
                 nameof(BasePokerPlayer.ReceiveRoundResultMessage)
             };
@@ -88,8 +88,8 @@ namespace NPokerEngine.Tests.Engine
 
             using (new AssertionScope())
             {
-                result.Seats.Players[0].Stack.Should().Be(95);
-                result.Seats.Players[1].Stack.Should().Be(105);
+                result.Seats.Players[0].Stack.Should().Be(105);
+                result.Seats.Players[1].Stack.Should().Be(95);
             }
         }
 
@@ -183,8 +183,8 @@ namespace NPokerEngine.Tests.Engine
             {
                 fecthStacks(result1).Should().BeEquivalentTo(new float[] { 1085, 10, 26, 980, 60 });
                 fecthStacks(result2).Should().BeEquivalentTo(new float[] { 1060, 0, 0, 1025, 40 });
-                fecthStacks(result3).Should().BeEquivalentTo(new float[] { 1100, 0, 0, 985, 0 });
-                fecthStacks(result4).Should().BeEquivalentTo(new float[] { 1060, 0, 0, 1025, 0 });
+                fecthStacks(result3).Should().BeEquivalentTo(new float[] { 1020, 0, 0, 1065, 0 });
+                fecthStacks(result4).Should().BeEquivalentTo(new float[] { 1025, 0, 0, 1060, 0 });
             }
         }
 
@@ -200,7 +200,7 @@ namespace NPokerEngine.Tests.Engine
             _dealer.Table._dealerButton = 2;
 
             // initialize stack
-            var stacks = new float[] { 30, 25, 19 };
+            var stacks = new float[] { 25, 30, 19 };
             for (int ix = 0; ix < stacks.Length; ix++)
             {
                 _dealer.Table.Seats[ix].Stack = stacks[ix];
@@ -210,7 +210,7 @@ namespace NPokerEngine.Tests.Engine
 
             var (result, _) = _dealer.StartGame(1);
 
-            fecthStacks(result).Should().BeEquivalentTo(new float[] { 55, 0, 0 });
+            fecthStacks(result).Should().BeEquivalentTo(new float[] { 0, 30, 0 });
         }
 
         //[TestMethod]

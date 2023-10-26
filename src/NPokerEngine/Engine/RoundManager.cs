@@ -80,6 +80,11 @@ namespace NPokerEngine.Engine
 
         private void CorrectBlind(float sb_amount, Table table)
         {
+            var isHeadsUp = table.Seats.ActivePlayersCount() == 2;
+            if (isHeadsUp)
+            {
+                (table._sbPosition, table._bbPosition) = (table._bbPosition, table._sbPosition);
+            }
             this.BlindTransaction(table.Seats.Players[table.SmallBlindPosition.Value], true, sb_amount);
             this.BlindTransaction(table.Seats.Players[table.BigBlindPosition.Value], false, sb_amount);
         }
@@ -138,41 +143,41 @@ namespace NPokerEngine.Engine
                 state.Table.AddCommunityCard(card);
             }
             // BB goes first in Heads-Up
-            //if (state.Table.Seats.Players.Count == 2)
-            //{
-            //    if (state.NextPlayerIx != -1)
-            //    {
-            //        state.NextPlayerIx = state.Table.NextAskWaitingPlayerPosition(state.NextPlayerIx);
-            //    }
-            //}
+            if (state.Table.DealerButton == state.Table.SmallBlindPosition.Value)
+            {
+                if (state.NextPlayerIx != -1)
+                {
+                    state.NextPlayerIx = state.Table.NextAskWaitingPlayerPosition(state.NextPlayerIx);
+                }
+            }
             return this.ForwardStreet(state);
         }
 
         private (GameState state, List<IMessage> messages) Turn(GameState state)
         {
             state.Table.AddCommunityCard(state.Table.Deck.DrawCard());
-            // BB goes first in Heads-Up
-            //if (state.Table.Seats.Players.Count == 2)
-            //{
-            //    if (state.NextPlayerIx != -1)
-            //    {
-            //        state.NextPlayerIx = state.Table.NextAskWaitingPlayerPosition(state.NextPlayerIx);
-            //    }
-            //}
+            // BB goes first in Heads - Up
+            if (state.Table.DealerButton == state.Table.SmallBlindPosition.Value)
+            {
+                if (state.NextPlayerIx != -1)
+                {
+                    state.NextPlayerIx = state.Table.NextAskWaitingPlayerPosition(state.NextPlayerIx);
+                }
+            }
             return this.ForwardStreet(state);
         }
 
         private (GameState state, List<IMessage> messages) River(GameState state)
         {
             state.Table.AddCommunityCard(state.Table.Deck.DrawCard());
-            // BB goes first in Heads-Up
-            //if (state.Table.Seats.Players.Count == 2)
-            //{
-            //    if (state.NextPlayerIx != -1)
-            //    {
-            //        state.NextPlayerIx = state.Table.NextAskWaitingPlayerPosition(state.NextPlayerIx);
-            //    }
-            //}
+            // BB goes first in Heads - Up
+            if (state.Table.DealerButton == state.Table.SmallBlindPosition.Value)
+            {
+                if (state.NextPlayerIx != -1)
+                {
+                    state.NextPlayerIx = state.Table.NextAskWaitingPlayerPosition(state.NextPlayerIx);
+                }
+            }
             return this.ForwardStreet(state);
         }
 

@@ -12,7 +12,7 @@ namespace NPokerEngine.Types
         private static string __dupHoleMsg = "Hole card is already set";
         private static string __wrongNumHoleMsg = "You passed  %d hole cards";
         private static string __wrongTypeHoleMsg = "You passed not Card object as hole card";
-        private static string __collectErrMsg = "Failed to collect %d chips. Because he has only %d chips";
+        private static string __collectErrMsg = "Failed to collect {0} chips. Because he has only {1} chips";
 
         private readonly string _name;
         private readonly string _uuid;

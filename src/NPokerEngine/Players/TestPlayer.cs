@@ -3,6 +3,7 @@ using NPokerEngine.Types;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 
@@ -20,6 +21,7 @@ namespace NPokerEngine.Players
         public override Tuple<ActionType, int> DeclareAction(IEnumerable validActions, HoleCards holeCards, object roundState)
         {
             var first = _testActions.First();
+            Debug.WriteLine($"{Name}->{first.Item1}->{_testActions.Count}->{((GameState)roundState).RoundCount}");
             _testActions.RemoveAt(0);
             return first;
         }

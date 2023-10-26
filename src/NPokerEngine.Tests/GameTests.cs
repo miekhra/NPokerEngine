@@ -22,8 +22,8 @@ namespace NPokerEngine.Tests
             gameResult.Seats.Players
                 .Should()
                 .SatisfyRespectively(
-                    first => first.Should().BeEquivalentTo(new Player(string.Empty, 110, "p1"), options => options.Including(p => p.Stack).Including(p => p.Name)),
-                    second => second.Should().BeEquivalentTo(new Player(string.Empty, 90, "p2"), options => options.Including(p => p.Stack).Including(p => p.Name))
+                    first => first.Should().BeEquivalentTo(new Player(string.Empty, 90, "p1"), options => options.Including(p => p.Stack).Including(p => p.Name)),
+                    second => second.Should().BeEquivalentTo(new Player(string.Empty, 110, "p2"), options => options.Including(p => p.Stack).Including(p => p.Name))
                 );
         }
 
@@ -37,8 +37,8 @@ namespace NPokerEngine.Tests
             gameResult.Seats.Players
                 .Should()
                 .SatisfyRespectively(
-                    first => first.Should().BeEquivalentTo(new Player(string.Empty, 125, "p1"), options => options.Including(p => p.Stack).Including(p => p.Name)),
-                    second => second.Should().BeEquivalentTo(new Player(string.Empty, 75, "p2"), options => options.Including(p => p.Stack).Including(p => p.Name))
+                    first => first.Should().BeEquivalentTo(new Player(string.Empty, 75, "p1"), options => options.Including(p => p.Stack).Including(p => p.Name)),
+                    second => second.Should().BeEquivalentTo(new Player(string.Empty, 125, "p2"), options => options.Including(p => p.Stack).Including(p => p.Name))
                 );
         }
 
@@ -53,8 +53,8 @@ namespace NPokerEngine.Tests
             gameResult.Seats.Players
                 .Should()
                 .SatisfyRespectively(
-                    first => first.Should().BeEquivalentTo(new Player(string.Empty, 115, "p1"), options => options.Including(p => p.Stack).Including(p => p.Name)),
-                    second => second.Should().BeEquivalentTo(new Player(string.Empty, 85, "p2"), options => options.Including(p => p.Stack).Including(p => p.Name))
+                    first => first.Should().BeEquivalentTo(new Player(string.Empty, 85, "p1"), options => options.Including(p => p.Stack).Including(p => p.Name)),
+                    second => second.Should().BeEquivalentTo(new Player(string.Empty, 115, "p2"), options => options.Including(p => p.Stack).Including(p => p.Name))
                 );
         }
 
