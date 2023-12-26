@@ -185,7 +185,7 @@ namespace NPokerEngine.Engine
         {
             var (winners, hand_info, prize_map) = GameEvaluator.Instance.Judge((Table)state.Table);
             this.PrizeToWinners(state.Table.Seats.Players, prize_map);
-            var result_message = MessageBuilder.Instance.BuildRoundResultMessage(state.RoundCount, winners, hand_info, state, prize_map);
+            var result_message = MessageBuilder.Instance.BuildRoundResultMessage(state.RoundCount, winners, hand_info, (GameState)state.Clone(), prize_map);
             state.Table.Reset();
             state.Street = (StreetType)(Convert.ToByte(state.Street) + 1);
             return (state, new List<IMessage>() { result_message });
