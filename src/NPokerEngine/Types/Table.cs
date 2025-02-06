@@ -37,6 +37,15 @@ namespace NPokerEngine.Types
             _communityCards = new List<Card>();
         }
 
+        public void SetButtonPosition(int buttonPos)
+        {
+            if (_seats.Players.Any(p => p.LastActionHistory != default))
+            {
+                return;
+            }
+            _dealerButton = buttonPos;
+        }
+
         public void SetBlindPositions(int? sbPosition, int? bbPosition)
         {
             _sbPosition = sbPosition;
